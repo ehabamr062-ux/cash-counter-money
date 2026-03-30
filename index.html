@@ -40,20 +40,23 @@
         /* التنسيقات (CSS) - تصميم احترافي مُحسَّن (تمت استعادته) */
         /* ---------------------------------------------------- */
 
-        /* الألوان - تم تحسين درجات الألوان للتباين والجاذبية */
-        /* ========== ثيم الأسود الذهبي الفاخر ========== */
+        /* الألوان - تم تحسين درجات الألوان للتباين والجاذبية الملكية */
+        /* ========== ثيم الأسود والذهب الملكي الثقيل ========== */
         :root {
-            --gold-primary: #FFD700;
-            --gold-light: #FFE55C;
-            --gold-dark: #B8860B;
-            --gold-gradient: linear-gradient(135deg, #B8860B 0%, #FFD700 40%, #FFF0A0 60%, #FFD700 80%, #B8860B 100%);
-            --gold-gradient-simple: linear-gradient(135deg, #B8860B, #FFD700, #B8860B);
-            --black-deep: #050508;
-            --black-card: #0D0D12;
-            --black-input: #13131A;
-            --black-hover: #1A1A24;
-            --gold-glow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.2);
-            --gold-glow-strong: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.3);
+            --gold-primary: #D4AF37;
+            --gold-light: #F9E498;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #996515 0%, #D4AF37 50%, #F9E498 100%);
+            --gold-gradient-metallic: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --gold-gradient-simple: linear-gradient(135deg, #996515, #D4AF37, #996515);
+            --black-deep: #08080A;
+            --black-card: #121217;
+            --black-input: #1A1A20;
+            --black-hover: #22222B;
+            --gold-glow: 0 0 25px rgba(212, 175, 55, 0.3), 0 0 50px rgba(212, 175, 55, 0.1);
+            --gold-glow-strong: 0 0 35px rgba(212, 175, 55, 0.5), 0 0 70px rgba(212, 175, 55, 0.2);
+            --glass-bg: rgba(18, 18, 23, 0.85);
+            --glass-border: rgba(212, 175, 55, 0.25);
         }
 
         /* ====== الوضع الفاتح الذهبي الدافئ ====== */
@@ -199,19 +202,19 @@
 
         body {
             font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #050508;
-            background-image:
-                radial-gradient(ellipse at top, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom, rgba(184, 134, 11, 0.05) 0%, transparent 50%),
-                repeating-linear-gradient(45deg, transparent, transparent 100px, rgba(255, 215, 0, 0.01) 100px, rgba(255, 215, 0, 0.01) 200px);
+            background-color: var(--black-deep);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(153, 101, 21, 0.05) 0%, transparent 30%);
+            background-attachment: fixed;
             margin: 0;
             padding: 0;
-            color: var(--text-color);
+            color: var(--gold-light);
             direction: rtl;
             transition: background-color 0.4s, color 0.4s;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-weight: 600;
+            font-weight: 500;
             min-height: 100vh;
         }
 
@@ -528,20 +531,22 @@
             align-items: center;
         }
 
-        /* البطاقات الذهبية الفاخرة */
+        /* البطاقات الذهبية الفاخرة - تأثير شفاف (Glassmorphism) */
         #calculator-card,
         #history-card,
         #settings-card {
-            background: linear-gradient(145deg, #0D0D12, #111118);
-            border-radius: 28px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 32px;
             box-shadow:
-                0 0 0 1px rgba(255, 215, 0, 0.2),
-                0 20px 60px rgba(0, 0, 0, 0.8),
-                inset 0 1px 0 rgba(255, 215, 0, 0.15);
-            border: 1px solid rgba(255, 215, 0, 0.25);
-            padding: 25px;
-            margin-bottom: 20px;
-            transition: all 0.4s ease;
+                0 0 0 1px var(--glass-border),
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 28px;
+            margin-bottom: 25px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
@@ -631,20 +636,27 @@
             font-size: 1.4em;
         }
 
-        /* صف العملة - تصميم ذهبي فاخر */
+        /* صف العملة - تصميم بلاتيني ذهبي */
         .note-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 5px;
-            padding: 8px 5px;
-            margin-bottom: 10px;
-            background: linear-gradient(145deg, #0D0D12, #111118);
-            border-radius: 18px;
-            border: 1px solid rgba(255, 215, 0, 0.12);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
+            gap: 12px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            background: rgba(26, 26, 32, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
+        }
+
+        .note-row:hover {
+            transform: scale(1.02);
+            border-color: rgba(212, 175, 55, 0.4);
+            background: rgba(34, 34, 43, 0.8);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.15);
         }
 
         .note-row:hover {
@@ -728,11 +740,23 @@
         }
 
         .row-total-display {
-            font-size: 0.9em;
-            color: var(--secondary-color);
+            font-size: 0.95em;
+            color: var(--gold-primary);
             text-align: center;
-            margin-top: 4px;
+            margin-top: 6px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .note-value {
             font-weight: 800;
+            font-size: 1.1em;
+            color: var(--gold-primary);
+            background: var(--gold-gradient-metallic);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
         }
 
         /* شاشة الإجمالي - تصميم ذهبي ملكي */
@@ -783,16 +807,16 @@
 
         #total-amount {
             font-size: 3.5em;
-            font-weight: 900;
-            background: var(--gold-gradient);
+            font-weight: 950;
+            background: var(--gold-gradient-metallic);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             display: block;
             margin-top: 5px;
-            animation: gold-shine 3s linear infinite;
-            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+            animation: gold-shine 5s linear infinite;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
         }
 
         #total-display h2,
@@ -1146,24 +1170,24 @@
             }
         }
 
-        /* تنسيق الأزرار الرئيسية */
+        /* تنسيق الأزرار الرئيسية - تصميم بلاتيني زجاجي */
         .actions {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 25px;
         }
 
         .btn {
-            padding: 12px 5px;
-            border-radius: 14px;
+            padding: 14px 8px;
+            border-radius: 18px;
             font-size: 0.9em;
             cursor: pointer;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            color: #FFD700;
-            background: linear-gradient(145deg, #0D0D12, #1A1A24);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 215, 0, 0.1);
-            transition: all 0.3s ease;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            color: var(--gold-primary);
+            background: linear-gradient(160deg, rgba(26, 26, 32, 0.8), rgba(18, 18, 23, 0.9));
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-weight: 700;
             position: relative;
             overflow: hidden;
@@ -1172,13 +1196,15 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 6px;
             text-align: center;
         }
 
         .btn i {
-            font-size: 1.3em;
+            font-size: 1.4em;
             margin-bottom: 2px;
+            color: var(--gold-light);
+            filter: drop-shadow(0 2px 5px rgba(212, 175, 55, 0.3));
         }
 
         .btn::before {
@@ -1190,35 +1216,48 @@
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 215, 0, 0.5);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.2);
+            transform: translateY(-3px) scale(1.02);
+            border-color: rgba(212, 175, 55, 0.5);
+            background: linear-gradient(160deg, rgba(34, 34, 43, 0.9), rgba(26, 26, 32, 1));
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.15);
+            color: var(--gold-light);
         }
 
         .btn:active {
-            transform: translateY(1px);
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+            transform: translateY(1px) scale(0.98);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.4);
         }
 
-        /* أزرار الحفظ والمشاركة */
+        /* أزرار الحفظ والمشاركة المتميزة */
         #save-btn {
-            background: var(--gold-gradient-simple);
+            background: var(--gold-gradient-metallic);
             color: #000 !important;
             border: none;
-            font-weight: 800;
-            box-shadow: 0 4px 20px rgba(255, 165, 0, 0.4);
+            font-weight: 900;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3), inset 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #save-btn i {
+            color: #000 !important;
+            filter: none;
         }
 
         #save-btn:hover {
-            box-shadow: 0 8px 30px rgba(255, 165, 0, 0.6);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5), inset 0 -2px 5px rgba(0, 0, 0, 0.2);
+            filter: brightness(1.1);
         }
 
         #share-btn {
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, #128C7E, #075E54);
             color: #fff !important;
-            border: none;
+            border: 1px solid rgba(37, 211, 102, 0.3);
             font-weight: 800;
-            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+            box-shadow: 0 4px 20px rgba(18, 140, 126, 0.3);
+        }
+        
+        #share-btn i {
+            color: #fff !important;
+            filter: none;
         }
 
         /* أزرار إضافية */
@@ -1269,95 +1308,119 @@
         .increment-btn,
         .decrement-btn {
             padding: 0;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            border-radius: 12px;
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3em;
+            font-size: 1.4em;
             cursor: pointer;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             color: #000;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
             touch-action: manipulation;
             font-weight: 900;
         }
 
         .increment-btn {
-            background: var(--gold-gradient-simple);
+            background: linear-gradient(135deg, #E5C058, #B8860B);
         }
 
         .decrement-btn {
-            background: linear-gradient(145deg, #8B0000, #DC143C);
-            color: white;
+            background: linear-gradient(135deg, #8B0000, #5C0000);
+            color: #fff;
+            border: 1px solid rgba(255, 0, 0, 0.1);
         }
 
-        .increment-btn:hover,
+        .increment-btn:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(135deg, #F9E498, #D4AF37);
+        }
+        
         .decrement-btn:hover {
-            transform: scale(1.12);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 0, 0, 0.4);
+            background: linear-gradient(135deg, #A50000, #8B0000);
         }
 
         .increment-btn:active,
         .decrement-btn:active {
-            transform: scale(0.92);
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
         }
 
-        /* تنسيقات المحفظة الرقمية (فودافون وإنستا باي) */
+        /* تنسيقات المحفظة الرقمية الزجاجية الفاخرة */
         .digital-wallet {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin: 20px 0;
+            margin: 25px 0;
         }
 
         .digital-card {
-            background: var(--card-background);
-            padding: 15px;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            background: rgba(20, 20, 25, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 18px;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.1);
             text-align: center;
-            transition: transform 0.3s;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
         }
 
         .digital-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(212, 175, 55, 0.3);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.1);
+            background: rgba(28, 28, 35, 0.85);
         }
 
         .digital-label {
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-weight: 800;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 1.1em;
+            letter-spacing: 0.5px;
         }
 
         .digital-card:nth-child(1) .digital-label {
-            color: #e60000;
+            color: #ff3333;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
         }
 
         /* أحمر لفودافون */
         .digital-card:nth-child(2) .digital-label {
-            color: #6f42c1;
+            color: #8a2be2;
+            text-shadow: 0 0 10px rgba(138, 43, 226, 0.2);
         }
 
         /* بنفسجي لإنستا */
 
         .digital-input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 15px;
-            background: var(--input-bg);
-            box-shadow: none;
-            border: 1px solid transparent;
-            color: var(--text-color);
+            border-radius: 16px;
+            background: rgba(10, 10, 15, 0.8) !important;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.6) !important;
+            border: 1px solid rgba(212, 175, 55, 0.15) !important;
+            color: var(--gold-primary) !important;
             text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
+            font-size: 1.3em;
+            font-weight: 900;
+            transition: border-color 0.3s !important;
+        }
+        
+        .digital-input:focus {
+            border-color: rgba(212, 175, 55, 0.5) !important;
         }
 
         @media (max-width: 480px) {
@@ -1366,28 +1429,29 @@
             }
         }
 
-        /* سجل البيانات اليومية - تحسين عرض القائمة */
+        /* سجل البيانات اليومية - تحسين عرض القائمة (زجاجي) */
         #history-list li {
-            background-color: var(--history-item-bg);
+            background: rgba(20, 20, 25, 0.6);
+            backdrop-filter: blur(8px);
             padding: 18px;
             border-radius: 20px;
             display: grid;
             grid-template-columns: 1fr auto auto;
-            /* تعديل الأعمدة لتناسب الهيكل الجديد */
-            gap: 10px;
+            gap: 12px;
             align-items: center;
-            margin-bottom: 12px;
-            border: none;
-            border-right: none;
-            border-left: none;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            margin-bottom: 15px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.05);
             list-style: none;
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
         }
 
         #history-list li:hover {
-            transform: none;
+            transform: scale(1.02);
+            background: rgba(28, 28, 35, 0.8);
+            border-color: rgba(212, 175, 55, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.1);
         }
 
         .history-info {
@@ -1436,18 +1500,18 @@
             background-color: #6f42c1;
         }
 
-        /* تصميم نافذة التعديل/التفاصيل (داخل SweetAlert) - تم استعادته */
+        /* تصميم نافذة التعديل/التفاصيل (داخل SweetAlert) - تم استعادته وتحسينه */
         .swal2-container .swal2-popup {
-            padding: 1.5em;
-            border-radius: 15px;
-            background-color: var(--card-background);
-            color: var(--text-color);
+            padding: 2em;
+            border-radius: 24px;
+            background: rgba(18, 18, 23, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            color: var(--gold-light);
             direction: rtl;
-            /* ضمان الاتجاه الصحيح للنافذة المنبثقة */
             max-height: 90vh;
-            /* منع النافذة من تجاوز ارتفاع الشاشة */
             overflow-y: auto;
-            /* تفعيل التمرير للنافذة كاملة */
         }
 
         /* رفع مستوى النافذة المنبثقة لتظهر فوق شريط التنقل السفلي */
@@ -1462,13 +1526,18 @@
 
         .swal2-container .swal2-input,
         .swal2-container .swal2-textarea {
-            background-color: #1a1a24 !important;
-            /* خلفية أغمق وأوضح */
-            color: #FFE88A !important;
-            /* لون نص ذهبي فاتح */
-            border: 1px solid rgba(255, 215, 0, 0.3) !important;
-            /* حدود ذهبية واضحة */
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+            background: rgba(10, 10, 15, 0.8) !important;
+            color: var(--gold-primary) !important;
+            border: 1px solid rgba(212, 175, 55, 0.2) !important;
+            border-radius: 12px !important;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+            transition: border-color 0.3s !important;
+        }
+        
+        .swal2-container .swal2-input:focus,
+        .swal2-container .swal2-textarea:focus {
+            border-color: rgba(212, 175, 55, 0.5) !important;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.2) !important;
         }
 
         /* تنسيق جدول التعديل داخل النافذة المنبثقة */
@@ -1505,12 +1574,13 @@
         }
 
         .edit-table th {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: bold;
+            background: var(--gold-gradient-metallic);
+            color: #000;
+            font-weight: 900;
             font-size: 1.1em;
             padding: 12px 8px;
             white-space: nowrap;
+            border-bottom: 2px solid #000;
         }
 
         /* تخصيص نافذة التعديل لتكون مميزة */
@@ -1520,36 +1590,42 @@
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
         }
 
-        /* تنسيق حقوق النشر */
+        /* تنسيق حقوق النشر الفاخرة */
         #footer-credits {
             text-align: center;
-            background: var(--gold-gradient);
+            background: var(--gold-gradient-metallic);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 1.1em;
-            padding: 15px 40px;
-            background-color: #0D0D12;
+            font-size: 1.2em;
+            padding: 15px 45px;
+            background-color: rgba(18, 18, 23, 0.8);
+            backdrop-filter: blur(10px);
             border-radius: 50px;
-            margin: 30px auto 120px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            font-weight: 800;
+            margin: 40px auto 120px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            font-weight: 900;
             width: fit-content;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.15);
+            transition: all 0.4s ease;
+        }
+        
+        #footer-credits:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 30px rgba(212, 175, 55, 0.25);
+            border-color: rgba(212, 175, 55, 0.6);
         }
 
         /* فاصل ذهبي بين الأقسام الرئيسية */
         .main-separator {
             border: 0;
             height: 3px;
-            /* تدرج لوني مع لمعة متحركة */
-            background: linear-gradient(90deg, transparent, #b8860b, #ffd700, #ffffff, #ffd700, #b8860b, transparent);
-            background-size: 200% auto;
-            margin: 30px auto;
-            width: 90%;
-            opacity: 0.9;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-            animation: shine 4s linear infinite;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5), var(--gold-primary), rgba(212, 175, 55, 0.5), transparent);
+            margin: 35px auto;
+            width: 85%;
+            opacity: 0.8;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+            border-radius: 50%;
         }
 
         /* تعديل حقول الإدخال الأخرى لتناسب النمط */
@@ -6316,4 +6392,4 @@ ${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')}
     </script>
 </body>
 
-</html>
+</html>عاوز تحسين تصميم الاوان
