@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cash-calc-gold-v2';
+const CACHE_NAME = 'cash-calc-gold-v3-network-first';
 const STATIC_ASSETS = [
     './',
     './index.html',
@@ -68,25 +68,21 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // باقي الملفات - Cache First
+    // باقي الملفات - Network First (لضمان الحصول على التحديثات فوراً)
     event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) {
-                // تحديث الكاش في الخلفية
-                fetch(event.request).then(freshResponse => {
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, freshResponse));
-                }).catch(() => { });
-                return cachedResponse;
-            }
-            return fetch(event.request).then(response => {
-                if (!response || response.status !== 200 || response.type === 'opaque') {
-                    return response;
+        fetch(event.request)
+            .then(response => {
+                // إذا تم جلب الملف من الشبكة بنجاح، نحدث الكاش
+                if (response && response.status === 200 && response.type !== 'opaque') {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                 }
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                 return response;
-            });
-        })
+            })
+            .catch(() => {
+                // إذا فشل الاتصال بالشبكة (أوفلاين)، نرجع الملف من الكاش
+                return caches.match(event.request);
+            })
     );
 });
 
