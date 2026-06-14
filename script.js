@@ -2830,21 +2830,60 @@ window.AppStorage = {
         // تسجيل Service Worker الخارجي
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
                     .then(reg => {
                         console.log('[App] Service Worker registered:', reg.scope);
-                        // تحديث تلقائي إذا توفر إصدار جديد
+
+                        // فرض التحقق من التحديثات كل 5 دقائق
+                        setInterval(() => {
+                            reg.update();
+                            console.log('[App] Checking for SW updates...');
+                        }, 5 * 60 * 1000);
+
+                        // اكتشاف تحديث جديد
                         reg.addEventListener('updatefound', () => {
                             const newWorker = reg.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: true, timer: 6000, background: 'var(--card-background)', color: 'var(--text-color)', confirmButtonText: 'تحديث' });
-                                    Toast.fire({ icon: 'info', title: 'إصدار جديد متاح! اضغط للتحديث' }).then(r => { if (r.isConfirmed) window.location.reload(); });
+                                    showUpdateNotification();
                                 }
                             });
                         });
                     })
                     .catch(e => console.log('[App] SW registration failed:', e));
+
+                // استقبال رسالة من SW عند التحديث
+                navigator.serviceWorker.addEventListener('message', event => {
+                    if (event.data && event.data.type === 'SW_UPDATED') {
+                        showUpdateNotification(event.data.version);
+                    }
+                });
+
+                // تحديث تلقائي عند تغيير الـ controller (يعني SW جديد أخد التحكم)
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    window.location.reload();
+                });
+            });
+        }
+
+        function showUpdateNotification(version = '') {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top',
+                showConfirmButton: true,
+                showCancelButton: true,
+                timer: 15000,
+                background: 'var(--card-background)',
+                color: 'var(--text-color)',
+                confirmButtonText: '🔄 تحديث الآن',
+                cancelButtonText: 'لاحقاً',
+                confirmButtonColor: 'var(--primary-color)'
+            });
+            Toast.fire({
+                icon: 'success',
+                title: version ? `✨ إصدار جديد ${version} متاح!` : '✨ إصدار جديد متاح!'
+            }).then(r => {
+                if (r.isConfirmed) window.location.reload(true);
             });
         }
 
