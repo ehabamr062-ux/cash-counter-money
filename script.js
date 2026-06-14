@@ -339,7 +339,16 @@ window.AppStorage = {
 
         function createUI() {
             notesListElement.innerHTML = ''; // تنظيف القائمة قبل الإنشاء
+            
+            const hide1 = AppStorage.getItem('hide_coin_1') === 'true';
+            const hide05 = AppStorage.getItem('hide_coin_05') === 'true';
+            const hide025 = AppStorage.getItem('hide_coin_025') === 'true';
+
             currencyDenominations.forEach(value => {
+                if (value === 1 && hide1) return;
+                if (value === 0.50 && hide05) return;
+                if (value === 0.25 && hide025) return;
+
                 const row = document.createElement('div');
                 row.className = 'note-row';
                 row.innerHTML = createCurrencyRowHTML(value);
@@ -1340,8 +1349,12 @@ window.AppStorage = {
 
             // تحديث أيقونة الزر في الإعدادات والزر في الشاشة الرئيسية
             const iconClass = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            document.querySelector('#mode-toggle-btn i').className = iconClass;
-            document.querySelector('#header-mode-toggle i').className = iconClass;
+            if (document.querySelector('#mode-toggle-btn i')) document.querySelector('#mode-toggle-btn i').className = iconClass;
+            if (document.querySelector('#header-mode-toggle i')) document.querySelector('#header-mode-toggle i').className = iconClass;
+
+            // تحديث درجات السمة البصرية فوراً بناءً على الوضع الجديد
+            const savedColorTheme = AppStorage.getItem('colorTheme') || 'green';
+            changeThemeColor(savedColorTheme);
         }
 
         document.getElementById('mode-toggle-btn').addEventListener('click', toggleAppTheme);
@@ -1444,32 +1457,186 @@ window.AppStorage = {
 
         function changeThemeColor(theme) {
             const root = document.documentElement;
-            switch (theme) {
-                case 'gold':
-                    root.style.setProperty('--primary-color', '#FFD700');
-                    root.style.setProperty('--secondary-color', '#FFA500');
-                    root.style.setProperty('--accent-color', '#FFE55C');
-                    break;
-                case 'blue':
-                    root.style.setProperty('--primary-color', '#007bff');
-                    root.style.setProperty('--secondary-color', '#28a745');
-                    root.style.setProperty('--accent-color', '#ffc107');
-                    break;
-                case 'green':
-                    root.style.setProperty('--primary-color', '#28a745');
-                    root.style.setProperty('--secondary-color', '#007bff');
-                    root.style.setProperty('--accent-color', '#ffc107');
-                    break;
-                case 'red':
-                    root.style.setProperty('--primary-color', '#dc3545');
-                    root.style.setProperty('--secondary-color', '#FF4444');
-                    root.style.setProperty('--accent-color', '#ffc107');
-                    break;
-                case 'purple':
-                    root.style.setProperty('--primary-color', '#6f42c1');
-                    root.style.setProperty('--secondary-color', '#8e44ad');
-                    root.style.setProperty('--accent-color', '#ffc107');
-                    break;
+            const isLight = root.getAttribute('data-theme') === 'light';
+
+            if (isLight) {
+                switch (theme) {
+                    case 'gold':
+                        root.style.setProperty('--primary-color', '#B8860B');
+                        root.style.setProperty('--secondary-color', '#DAA520');
+                        root.style.setProperty('--accent-color', '#D4AF37');
+                        root.style.setProperty('--gold-primary', '#B8860B');
+                        root.style.setProperty('--gold-light', '#DAA520');
+                        root.style.setProperty('--gold-dark', '#8B6914');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #8B6914 0%, #B8860B 50%, #DAA520 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #8B6914, #DAA520, #B8860B, #F9E498, #DAA520)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #8B6914, #B8860B, #8B6914)');
+                        root.style.setProperty('--gold-glow', '0 0 20px rgba(184, 134, 11, 0.15)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 30px rgba(184, 134, 11, 0.25)');
+                        root.style.setProperty('--glass-border', 'rgba(184, 134, 11, 0.2)');
+                        root.style.setProperty('--border-color', 'rgba(184, 134, 11, 0.15)');
+                        break;
+                    case 'blue':
+                        root.style.setProperty('--primary-color', '#1D4ED8');
+                        root.style.setProperty('--secondary-color', '#3B82F6');
+                        root.style.setProperty('--accent-color', '#60A5FA');
+                        root.style.setProperty('--gold-primary', '#1D4ED8');
+                        root.style.setProperty('--gold-light', '#3B82F6');
+                        root.style.setProperty('--gold-dark', '#1E3A8A');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 50%, #3B82F6 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #1E3A8A, #3B82F6, #1D4ED8, #93C5FD, #3B82F6)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #1E3A8A, #1D4ED8, #1E3A8A)');
+                        root.style.setProperty('--gold-glow', '0 0 20px rgba(29, 78, 216, 0.15)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 30px rgba(29, 78, 216, 0.25)');
+                        root.style.setProperty('--glass-border', 'rgba(29, 78, 216, 0.2)');
+                        root.style.setProperty('--border-color', 'rgba(29, 78, 216, 0.15)');
+                        break;
+                    case 'green':
+                        root.style.setProperty('--primary-color', '#047857');
+                        root.style.setProperty('--secondary-color', '#10B981');
+                        root.style.setProperty('--accent-color', '#34D399');
+                        root.style.setProperty('--gold-primary', '#047857');
+                        root.style.setProperty('--gold-light', '#10B981');
+                        root.style.setProperty('--gold-dark', '#065F46');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #065F46 0%, #047857 50%, #10B981 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #065F46, #10B981, #047857, #6EE7B7, #10B981)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #065F46, #047857, #065F46)');
+                        root.style.setProperty('--gold-glow', '0 0 20px rgba(4, 120, 87, 0.15)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 30px rgba(4, 120, 87, 0.25)');
+                        root.style.setProperty('--glass-border', 'rgba(4, 120, 87, 0.2)');
+                        root.style.setProperty('--border-color', 'rgba(4, 120, 87, 0.15)');
+                        break;
+                    case 'purple':
+                        root.style.setProperty('--primary-color', '#6D28D9');
+                        root.style.setProperty('--secondary-color', '#8B5CF6');
+                        root.style.setProperty('--accent-color', '#A78BFA');
+                        root.style.setProperty('--gold-primary', '#6D28D9');
+                        root.style.setProperty('--gold-light', '#8B5CF6');
+                        root.style.setProperty('--gold-dark', '#4C1D95');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #4C1D95 0%, #6D28D9 50%, #8B5CF6 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #4C1D95, #8B5CF6, #6D28D9, #C4B5FD, #8B5CF6)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #4C1D95, #6D28D9, #4C1D95)');
+                        root.style.setProperty('--gold-glow', '0 0 20px rgba(109, 40, 217, 0.15)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 30px rgba(109, 40, 217, 0.25)');
+                        root.style.setProperty('--glass-border', 'rgba(109, 40, 217, 0.2)');
+                        root.style.setProperty('--border-color', 'rgba(109, 40, 217, 0.15)');
+                        break;
+                    case 'red':
+                        root.style.setProperty('--primary-color', '#B91C1C');
+                        root.style.setProperty('--secondary-color', '#EF4444');
+                        root.style.setProperty('--accent-color', '#F87171');
+                        root.style.setProperty('--gold-primary', '#B91C1C');
+                        root.style.setProperty('--gold-light', '#EF4444');
+                        root.style.setProperty('--gold-dark', '#7F1D1D');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #7F1D1D 0%, #B91C1C 50%, #EF4444 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #7F1D1D, #EF4444, #B91C1C, #FCA5A5, #EF4444)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #7F1D1D, #B91C1C, #7F1D1D)');
+                        root.style.setProperty('--gold-glow', '0 0 20px rgba(185, 28, 28, 0.15)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 30px rgba(185, 28, 28, 0.25)');
+                        root.style.setProperty('--glass-border', 'rgba(185, 28, 28, 0.2)');
+                        root.style.setProperty('--border-color', 'rgba(185, 28, 28, 0.15)');
+                        break;
+                }
+                root.style.removeProperty('--body-bg-image');
+            } else {
+                // Dark Mode
+                switch (theme) {
+                    case 'gold':
+                        root.style.setProperty('--primary-color', '#FFD700');
+                        root.style.setProperty('--secondary-color', '#FFA500');
+                        root.style.setProperty('--accent-color', '#FFE55C');
+                        root.style.setProperty('--gold-primary', '#D4AF37');
+                        root.style.setProperty('--gold-light', '#F9E498');
+                        root.style.setProperty('--gold-dark', '#996515');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #996515 0%, #D4AF37 50%, #F9E498 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #996515, #D4AF37, #996515)');
+                        root.style.setProperty('--gold-glow', '0 0 25px rgba(212, 175, 55, 0.3), 0 0 50px rgba(212, 175, 55, 0.1)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 35px rgba(212, 175, 55, 0.5), 0 0 70px rgba(212, 175, 55, 0.2)');
+                        root.style.setProperty('--glass-border', 'rgba(212, 175, 55, 0.25)');
+                        root.style.setProperty('--border-color', 'rgba(212, 175, 55, 0.2)');
+                        root.style.setProperty('--body-bg-image', `
+                            radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
+                            radial-gradient(circle at 0% 100%, rgba(153, 101, 21, 0.06) 0%, transparent 40%)
+                        `);
+                        break;
+                    case 'blue':
+                        root.style.setProperty('--primary-color', '#3B82F6');
+                        root.style.setProperty('--secondary-color', '#60A5FA');
+                        root.style.setProperty('--accent-color', '#93C5FD');
+                        root.style.setProperty('--gold-primary', '#3B82F6');
+                        root.style.setProperty('--gold-light', '#93C5FD');
+                        root.style.setProperty('--gold-dark', '#1D4ED8');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 50%, #93C5FD 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #1E3A8A, #60A5FA, #1D4ED8, #BFDBFE, #2563EB)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #1D4ED8, #3B82F6, #1D4ED8)');
+                        root.style.setProperty('--gold-glow', '0 0 25px rgba(59, 130, 246, 0.3), 0 0 50px rgba(59, 130, 246, 0.1)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 35px rgba(59, 130, 246, 0.5), 0 0 70px rgba(59, 130, 246, 0.2)');
+                        root.style.setProperty('--glass-border', 'rgba(59, 130, 246, 0.25)');
+                        root.style.setProperty('--border-color', 'rgba(59, 130, 246, 0.2)');
+                        root.style.setProperty('--body-bg-image', `
+                            radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+                            radial-gradient(circle at 0% 100%, rgba(29, 78, 246, 0.06) 0%, transparent 40%)
+                        `);
+                        break;
+                    case 'green':
+                        root.style.setProperty('--primary-color', '#10B981');
+                        root.style.setProperty('--secondary-color', '#34D399');
+                        root.style.setProperty('--accent-color', '#6EE7B7');
+                        root.style.setProperty('--gold-primary', '#10B981');
+                        root.style.setProperty('--gold-light', '#A7F3D0');
+                        root.style.setProperty('--gold-dark', '#065F46');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #065F46 0%, #10B981 50%, #A7F3D0 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #064E3B, #34D399, #059669, #A7F3D0, #10B981)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #065F46, #10B981, #065F46)');
+                        root.style.setProperty('--gold-glow', '0 0 25px rgba(16, 185, 129, 0.3), 0 0 50px rgba(16, 185, 129, 0.1)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 35px rgba(16, 185, 129, 0.5), 0 0 70px rgba(16, 185, 129, 0.2)');
+                        root.style.setProperty('--glass-border', 'rgba(16, 185, 129, 0.25)');
+                        root.style.setProperty('--border-color', 'rgba(16, 185, 129, 0.2)');
+                        root.style.setProperty('--body-bg-image', `
+                            radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+                            radial-gradient(circle at 0% 100%, rgba(6, 95, 70, 0.06) 0%, transparent 40%)
+                        `);
+                        break;
+                    case 'purple':
+                        root.style.setProperty('--primary-color', '#8B5CF6');
+                        root.style.setProperty('--secondary-color', '#A78BFA');
+                        root.style.setProperty('--accent-color', '#C4B5FD');
+                        root.style.setProperty('--gold-primary', '#8B5CF6');
+                        root.style.setProperty('--gold-light', '#DDD6FE');
+                        root.style.setProperty('--gold-dark', '#5B21B6');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #5B21B6 0%, #8B5CF6 50%, #DDD6FE 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #4C1D95, #A78BFA, #6D28D9, #C4B5FD, #8B5CF6)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #5B21B6, #8B5CF6, #5B21B6)');
+                        root.style.setProperty('--gold-glow', '0 0 25px rgba(139, 92, 246, 0.3), 0 0 50px rgba(139, 92, 246, 0.1)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 35px rgba(139, 92, 246, 0.5), 0 0 70px rgba(139, 92, 246, 0.2)');
+                        root.style.setProperty('--glass-border', 'rgba(139, 92, 246, 0.25)');
+                        root.style.setProperty('--border-color', 'rgba(139, 92, 246, 0.2)');
+                        root.style.setProperty('--body-bg-image', `
+                            radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                            radial-gradient(circle at 0% 100%, rgba(91, 33, 182, 0.06) 0%, transparent 40%)
+                        `);
+                        break;
+                    case 'red':
+                        root.style.setProperty('--primary-color', '#EF4444');
+                        root.style.setProperty('--secondary-color', '#F87171');
+                        root.style.setProperty('--accent-color', '#FCA5A5');
+                        root.style.setProperty('--gold-primary', '#EF4444');
+                        root.style.setProperty('--gold-light', '#FCA5A5');
+                        root.style.setProperty('--gold-dark', '#991B1B');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #991B1B 0%, #EF4444 50%, #FCA5A5 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #7F1D1D, #F87171, #B91C1C, #FECACA, #EF4444)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #991B1B, #EF4444, #991B1B)');
+                        root.style.setProperty('--gold-glow', '0 0 25px rgba(239, 68, 68, 0.3), 0 0 50px rgba(239, 68, 68, 0.1)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 35px rgba(239, 68, 68, 0.5), 0 0 70px rgba(239, 68, 68, 0.2)');
+                        root.style.setProperty('--glass-border', 'rgba(239, 68, 68, 0.25)');
+                        root.style.setProperty('--border-color', 'rgba(239, 68, 68, 0.2)');
+                        root.style.setProperty('--body-bg-image', `
+                            radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.12) 0%, transparent 50%),
+                            radial-gradient(circle at 0% 100%, rgba(153, 27, 27, 0.06) 0%, transparent 40%)
+                        `);
+                        break;
+                }
             }
         }
 
@@ -2003,7 +2170,7 @@ window.AppStorage = {
             if (document.querySelector('#mode-toggle-btn i')) document.querySelector('#mode-toggle-btn i').className = iconClass;
             if (document.querySelector('#header-mode-toggle i')) document.querySelector('#header-mode-toggle i').className = iconClass;
 
-            const savedColorTheme = AppStorage.getItem('colorTheme') || 'gold';
+            const savedColorTheme = AppStorage.getItem('colorTheme') || 'green';
             changeThemeColor(savedColorTheme);
 
             // تمييز اللون المختار في الإعدادات
@@ -2026,6 +2193,35 @@ window.AppStorage = {
 
             const soundEnabled = AppStorage.getItem('soundEnabled') !== 'false';
             if (document.getElementById('sound-toggle')) document.getElementById('sound-toggle').checked = soundEnabled;
+
+            // استعادة إعدادات إخفاء العملات
+            if (document.getElementById('hide-coin-1')) {
+                document.getElementById('hide-coin-1').checked = AppStorage.getItem('hide_coin_1') === 'true';
+                document.getElementById('hide-coin-1').addEventListener('change', (e) => {
+                    AppStorage.setItem('hide_coin_1', e.target.checked.toString());
+                    createUI();
+                    loadInputs();
+                    calculateTotal();
+                });
+            }
+            if (document.getElementById('hide-coin-05')) {
+                document.getElementById('hide-coin-05').checked = AppStorage.getItem('hide_coin_05') === 'true';
+                document.getElementById('hide-coin-05').addEventListener('change', (e) => {
+                    AppStorage.setItem('hide_coin_05', e.target.checked.toString());
+                    createUI();
+                    loadInputs();
+                    calculateTotal();
+                });
+            }
+            if (document.getElementById('hide-coin-025')) {
+                document.getElementById('hide-coin-025').checked = AppStorage.getItem('hide_coin_025') === 'true';
+                document.getElementById('hide-coin-025').addEventListener('change', (e) => {
+                    AppStorage.setItem('hide_coin_025', e.target.checked.toString());
+                    createUI();
+                    loadInputs();
+                    calculateTotal();
+                });
+            }
 
             const autosaveEnabled = AppStorage.getItem('autosaveEnabled') !== 'false';
             if (document.getElementById('autosave-toggle')) {

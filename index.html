@@ -111,7 +111,7 @@
     <div id="settings-modal"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10001; justify-content: center; align-items: center; direction: rtl; padding-bottom: env(safe-area-inset-bottom);">
         <div class="modal-content"
-            style="background: linear-gradient(160deg, var(--card-background) 0%, var(--card-background) 100%); padding: 0; border-radius: 24px; max-width: 95%; width: 500px; max-height: 88vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px var(--border-color), 0 30px 80px rgba(0,0,0,0.9); border: 1px solid var(--border-color);">
+            style="background: linear-gradient(160deg, var(--card-background) 0%, var(--card-background) 100%); padding: 0; border-radius: 24px; max-width: 95%; width: 500px; max-height: 95vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 0 1px var(--border-color), 0 30px 80px rgba(0,0,0,0.9); border: 1px solid var(--border-color);">
 
             <!-- رأس نافذة الإعدادات الذهبي -->
             <div
@@ -134,7 +134,7 @@
             </div>
 
             <!-- محتوى قابل للتمرير -->
-            <div style="overflow-y: auto; flex: 1; padding: 18px;">
+            <div style="overflow-y: auto; flex: 1; padding: 18px; min-height: 0;">
 
                 <div id="settings-menu">
                     <!-- شريط التبويب -->
@@ -369,6 +369,21 @@
                             </div>
                         </div>
                         <div class="neu-card">
+                            <div class="neu-card-title"><i class="fas fa-eye-slash"></i> إخفاء الفئات (لتوفير المساحة)</div>
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-bottom: 1px solid var(--shadow-light);">
+                                <input type="checkbox" id="hide-coin-1" style="width: auto; accent-color: var(--primary-color);" onchange="AppStorage.setItem('hide_coin_1', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
+                                <span style="color: var(--text-muted); font-size: 0.85em;">إخفاء فئة 1 جنيه</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-bottom: 1px solid var(--shadow-light);">
+                                <input type="checkbox" id="hide-coin-05" style="width: auto; accent-color: var(--primary-color);" onchange="AppStorage.setItem('hide_coin_05', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
+                                <span style="color: var(--text-muted); font-size: 0.85em;">إخفاء فئة 0.50 جنيه (نص)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px;">
+                                <input type="checkbox" id="hide-coin-025" style="width: auto; accent-color: var(--primary-color);" onchange="AppStorage.setItem('hide_coin_025', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
+                                <span style="color: var(--text-muted); font-size: 0.85em;">إخفاء فئة 0.25 جنيه (ربع)</span>
+                            </label>
+                        </div>
+                        <div class="neu-card">
                             <div class="neu-card-title"><i class="fas fa-balance-scale"></i> مطابقة العهدة</div>
                             <label id="system-sales-label"
                                 style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">مبيعات
@@ -393,15 +408,15 @@
                             <label
                                 style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">كلمة
                                 المرور الجديدة:</label>
-                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <div style="position: relative; flex-grow: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; width: 100%;">
+                                <div style="position: relative; flex: 1; min-width: 0;">
                                     <input type="password" id="password-input" placeholder="أدخل كلمة المرور"
-                                        style="width: 100%; padding-left: 40px;">
+                                        style="width: 100%; padding-left: 40px; box-sizing: border-box;">
                                     <i id="toggle-password-eye" class="fas fa-eye"
                                         style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; transition: color 0.3s;"></i>
                                 </div>
                                 <button id="set-password-btn" class="btn"
-                                    style="padding: 0 15px; background: var(--gold-gradient-simple); color: #000; border: none; font-weight: 800;">تعيين</button>
+                                     style="flex: 0 0 auto; width: 90px !important; height: 44px; padding: 0; background: var(--gold-gradient-simple); color: #000; border: none; font-weight: 800; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0;">تعيين</button>
                             </div>
                             <label
                                 style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; background: var(--shadow-light); border-radius: 10px; border: 1px solid var(--border-color);">
@@ -853,21 +868,9 @@
             <i class="fas fa-coins"></i>
             <span>الرئيسية</span>
         </button>
-        <button class="nav-item" onclick="handleBottomNav('digital', this)">
-            <i class="fas fa-wallet"></i>
-            <span>رقمي</span>
-        </button>
         <button class="nav-item" onclick="handleBottomNav('math', this)">
             <i class="fas fa-calculator"></i>
             <span>الآلة الحاسبة</span>
-        </button>
-        <button class="nav-item" onclick="handleBottomNav('stats', this)">
-            <i class="fas fa-chart-pie"></i>
-            <span>إحصائيات</span>
-        </button>
-        <button class="nav-item" onclick="handleBottomNav('profile', this)">
-            <i class="fas fa-user"></i>
-            <span>حسابي</span>
         </button>
         <button class="nav-item" onclick="handleBottomNav('settings', this)">
             <i class="fas fa-cog"></i>

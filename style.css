@@ -123,7 +123,7 @@
         
         :root[data-theme="light"] h1,
         :root[data-theme="light"] h2 {
-            background: linear-gradient(135deg, #B8860B, #8B6914) !important;
+            background: var(--gold-gradient) !important;
             -webkit-background-clip: text !important;
             background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
@@ -132,16 +132,16 @@
 
         :root[data-theme="light"] .btn {
             background: #FFFFFF !important;
-            border: 1px solid rgba(184, 134, 11, 0.2) !important;
+            border: 1px solid var(--border-color) !important;
             color: #1A1A2A !important;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04) !important;
         }
 
         :root[data-theme="light"] #save-btn {
-            background: linear-gradient(135deg, #D4AF37, #B8860B) !important;
+            background: var(--gold-gradient-simple) !important;
             color: #FFFFFF !important;
             border: none !important;
-            box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3) !important;
+            box-shadow: 0 4px 15px var(--border-color) !important;
         }
 
         :root[data-theme="light"] #share-btn {
@@ -157,7 +157,7 @@
         }
 
         :root[data-theme="light"] .tab-btn.active {
-            background: #B8860B !important;
+            background: var(--primary-color) !important;
             color: #FFFFFF !important;
         }
 
@@ -168,7 +168,7 @@
         }
 
         :root[data-theme="light"] .action-btn-small i {
-            color: #B8860B !important;
+            color: var(--primary-color) !important;
         }
 
         :root[data-theme="light"] #history-list li {
@@ -178,8 +178,8 @@
         }
         
         :root[data-theme="light"] .note-icon {
-            background: rgba(184, 134, 11, 0.05) !important;
-            border-color: rgba(184, 134, 11, 0.1) !important;
+            background: var(--border-color) !important;
+            opacity: 0.95;
         }
         
         :root[data-theme="light"] .note-value {
@@ -204,14 +204,14 @@
 
         /* ====== الوضع الليلي العصري (Modern Dark Mode) ====== */
         :root[data-theme="dark"] {
-            --primary-color: #3B82F6; /* أزرق عصري ومريح للعين */
+            --primary-color: #3B82F6; /* القيمة الافتراضية سيتم تحديثها بالـ JS */
             --secondary-color: #60A5FA;
             --accent-color: #93C5FD;
             --background-color: #0F172A; /* خلفية داكنة جداً (Slate) */
             --card-background: #1E293B; /* لون البطاقات */
             --text-color: #F8FAFC; /* نص أبيض ساطع */
             --text-muted: #94A3B8; /* نص رمادي مريح */
-            --border-color: rgba(59, 130, 246, 0.2); /* حدود زرقاء خفيفة */
+            --border-color: rgba(59, 130, 246, 0.2); /* سيتم تحديثها بالـ JS */
             --total-bg: #0F172A;
             --history-item-bg: #1E293B;
             --input-bg: #0F172A;
@@ -219,29 +219,22 @@
             --shadow-dark: rgba(0, 0, 0, 0.5);
             --edit-modal-bg: #1E293B;
 
-            /* استبدال المتغيرات الذهبية باللون الأزرق للحصول على وضع ليلي نقي */
-            --gold-primary: #3B82F6;
-            --gold-light: #93C5FD;
-            --gold-dark: #1D4ED8;
-            --gold-gradient: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 50%, #93C5FD 100%);
-            --gold-gradient-metallic: linear-gradient(45deg, #1E3A8A, #60A5FA, #1D4ED8, #BFDBFE, #2563EB);
-            --gold-gradient-simple: linear-gradient(135deg, #1D4ED8, #3B82F6, #1D4ED8);
+            /* إزالة الاستبدال القسري للمتغيرات الذهبية بالأزرق للسماح بالسمات اللمسية المتعددة في الوضع الداكن */
             --black-deep: #0B1120;
             --black-card: #1E293B;
             --black-input: #0F172A;
             --black-hover: #334155;
-            --gold-glow: 0 0 25px rgba(59, 130, 246, 0.3), 0 0 50px rgba(59, 130, 246, 0.1);
-            --gold-glow-strong: 0 0 35px rgba(59, 130, 246, 0.5), 0 0 70px rgba(59, 130, 246, 0.2);
             --glass-bg: rgba(30, 41, 59, 0.85);
-            --glass-border: rgba(59, 130, 246, 0.25);
+            --glass-border: rgba(59, 130, 246, 0.25); /* سيتم تحديثها بالـ JS */
         }
 
         body {
             font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--black-deep);
-            background-image: 
+            background-image: var(--body-bg-image, 
                 radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 0% 100%, rgba(153, 101, 21, 0.05) 0%, transparent 30%);
+                radial-gradient(circle at 0% 100%, rgba(153, 101, 21, 0.05) 0%, transparent 30%)
+            );
             background-attachment: fixed;
             margin: 0;
             padding: 0;
@@ -340,6 +333,7 @@
             }
 
             .actions {
+                display: flex;
                 flex-direction: column;
                 gap: 15px;
             }
@@ -516,10 +510,20 @@
                 height: 80px;
                 border-top-left-radius: 30px;
                 border-top-right-radius: 30px;
+                justify-content: flex-start;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            .bottom-nav::-webkit-scrollbar {
+                display: none; /* إخفاء شريط التمرير */
             }
 
             .nav-item {
-                font-size: 1em;
+                font-size: 0.85em;
+                min-width: 75px;
+                flex: 0 0 auto;
             }
 
             .btn {
@@ -569,8 +573,7 @@
 
         /* البطاقات الذهبية الفاخرة - تأثير شفاف (Glassmorphism) */
         #calculator-card,
-        #history-card,
-        #settings-card {
+        #history-card {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
@@ -585,6 +588,24 @@
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+        }
+
+        #settings-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 32px;
+            box-shadow:
+                0 0 0 1px var(--glass-border),
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 28px;
+            margin-bottom: 25px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 10001;
+            overflow: visible;
         }
 
         #calculator-card::before,
@@ -805,10 +826,10 @@
             position: relative;
             overflow: hidden;
             box-shadow:
-                0 0 0 1px rgba(255, 215, 0, 0.3),
+                0 0 0 1px var(--glass-border),
                 0 20px 50px rgba(0, 0, 0, 0.8),
-                inset 0 0 40px rgba(255, 215, 0, 0.03);
-            border: 1px solid rgba(255, 215, 0, 0.3);
+                inset 0 0 40px var(--glass-border);
+            border: 1px solid var(--glass-border);
         }
 
         #total-display::before {
@@ -858,7 +879,7 @@
         #total-display h2,
         #currency-label,
         #equivalent {
-            color: rgba(255, 215, 0, 0.8) !important;
+            color: var(--gold-primary) !important;
         }
 
         /* تأثير نبض عند تحديث الرقم */
@@ -901,11 +922,11 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
-        /* استايل زر القفل */
         .lock-btn {
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            color: rgba(255, 215, 0, 0.5);
+            background: var(--border-color);
+            border: 1px solid var(--border-color);
+            color: var(--gold-primary);
+            opacity: 0.6;
             width: 35px;
             height: 35px;
             border-radius: 10px;
@@ -1054,8 +1075,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px;
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.1);
+            background: var(--border-color);
+            border: 1px solid var(--border-color);
             border-radius: 15px;
             margin-bottom: 10px;
         }
@@ -1142,15 +1163,16 @@
             gap: 15px;
             margin-bottom: 20px;
             text-align: right;
-            background: rgba(255, 215, 0, 0.03);
+            background: var(--border-color);
             padding: 12px;
             border-radius: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.08);
+            border: 1px solid var(--border-color);
             transition: 0.3s;
         }
 
         .feature-item:hover {
-            background: rgba(255, 215, 0, 0.06);
+            background: var(--border-color);
+            opacity: 1;
             transform: translateX(-5px);
         }
 
@@ -1965,36 +1987,23 @@
         /* --- تحسينات الإعدادات الذهبية الفاخرة --- */
         .tabs-header {
             display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding: 5px 5px 15px 5px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 8px 5px 15px 5px;
             margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-            scrollbar-width: thin;
-            /* للمتصفحات التي تدعم هذا */
-            scrollbar-color: #B8860B transparent;
-            -webkit-overflow-scrolling: touch;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            z-index: 10;
         }
 
-        .tabs-header::-webkit-scrollbar {
-            height: 4px;
-            display: block !important;
-        }
 
-        .tabs-header::-webkit-scrollbar-track {
-            background: rgba(255, 215, 0, 0.05);
-            border-radius: 10px;
-        }
-
-        .tabs-header::-webkit-scrollbar-thumb {
-            background: linear-gradient(to right, #B8860B, #FFD700);
-            border-radius: 10px;
-        }
 
         .tab-btn {
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.1);
-            color: rgba(255, 215, 0, 0.6);
+            background: var(--border-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            opacity: 0.7;
             padding: 9px 14px;
             font-size: 0.88em;
             font-weight: 700;
@@ -2007,15 +2016,17 @@
 
         .tab-btn.active {
             background: var(--gold-gradient-simple);
-            color: #000;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
             border-color: transparent;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            box-shadow: var(--gold-glow);
         }
 
         .tab-btn:hover:not(.active) {
-            background: rgba(255, 215, 0, 0.1);
-            color: #FFD700;
-            border-color: rgba(255, 215, 0, 0.3);
+            background: var(--border-color);
+            opacity: 1;
+            color: var(--gold-primary);
+            border-color: var(--gold-primary);
         }
 
         .tab-pane {
@@ -2025,6 +2036,17 @@
 
         .tab-pane.active {
             display: block;
+
+        }
+
+        #tab-about.active {
+            display: block;
+            max-height: none;
+            overflow-y: visible;
+            overflow-x: hidden;
+            padding-left: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) transparent;
         }
 
         .neu-card {
@@ -2033,7 +2055,7 @@
             padding: 18px;
             margin-bottom: 16px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 215, 0, 0.12);
+            border: 1px solid var(--border-color);
             position: relative;
             overflow: hidden;
         }
@@ -2054,15 +2076,15 @@
         .neu-card-title i {
             width: 32px;
             height: 32px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.25);
+            background: var(--border-color);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.9em;
-            color: #FFD700;
-            -webkit-text-fill-color: #FFD700;
+            color: var(--gold-primary);
+            -webkit-text-fill-color: var(--gold-primary);
             flex-shrink: 0;
         }
 
@@ -2079,10 +2101,10 @@
             justify-content: center;
             padding: 15px 10px;
             background: linear-gradient(145deg, #111118, #1A1A24);
-            border: 1px solid rgba(255, 215, 0, 0.15);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            color: #FFD700;
+            color: var(--gold-primary);
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -2092,8 +2114,8 @@
         }
 
         .action-btn-small:hover {
-            border-color: rgba(255, 215, 0, 0.4);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 215, 0, 0.15);
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), var(--gold-glow);
             transform: translateY(-3px);
         }
 
@@ -2104,7 +2126,7 @@
         .action-btn-small i {
             font-size: 1.7em;
             margin-bottom: 8px;
-            color: #FFD700;
+            color: var(--gold-primary);
         }
 
         .logout-btn {
@@ -2158,7 +2180,7 @@
             border-top-left-radius: 32px;
             border-top-right-radius: 32px;
             box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.9), 0 -1px 0 rgba(255, 215, 0, 0.3);
-            z-index: 9999;
+            z-index: 1000;
             padding-bottom: env(safe-area-inset-bottom);
             border-top: 1px solid rgba(255, 215, 0, 0.3);
             transition: all 0.4s ease;
@@ -2635,3 +2657,8 @@
             .calc-btn.action {
                 font-size: 1.2em;
             }
+
+/* حل مشكلة تداخل الطبقات للنوافذ المنبثقة (SweetAlert) فوق الإعدادات */
+.swal2-container {
+    z-index: 100005 !important;
+}
