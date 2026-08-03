@@ -1,5 +1,5 @@
 // ===== رقم الإصدار - غيّره مع كل تحديث =====
-const APP_VERSION = '4.2.14'; // <-- غيّر هذا الرقم مع كل رفع جديد
+const APP_VERSION = '5.0.0'; // PWA Stable Production Release
 const CACHE_NAME = `cash-calc-v${APP_VERSION}`;
 
 const STATIC_ASSETS = [
@@ -11,23 +11,26 @@ const STATIC_ASSETS = [
     './icons/icon-192.png',
     './icons/icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
-    'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js',
+    'https://cdn.jsdelivr.net/npm/sweetalert2@11',
+    'https://html2canvas.hertzen.com/dist/html2canvas.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
     'https://cdn.jsdelivr.net/npm/chart.js',
     'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap'
 ];
 
-// ===== تثبيت Service Worker - يفعّل فوراً بدون انتظار =====
+// ===== تثبيت Service Worker - يفعّل وتخزين كافة الأصول أوفلاين =====
 self.addEventListener('install', event => {
-    console.log(`[SW v${APP_VERSION}] Installing...`);
-    // skipWaiting يجعل الـ SW الجديد يأخذ التحكم فوراً
+    console.log(`[SW v${APP_VERSION}] Installing Offline PWA...`);
     self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
-            console.log(`[SW v${APP_VERSION}] Caching assets`);
+            console.log(`[SW v${APP_VERSION}] Caching static assets`);
             return Promise.allSettled(
                 STATIC_ASSETS.map(url =>
-                    cache.add(url).catch(err => {
-                        console.warn('[SW] Failed to cache:', url, err);
+                    fetch(url, { mode: 'cors' }).then(response => {
+                        if (response.ok) return cache.put(url, response);
+                    }).catch(err => {
+                        console.warn('[SW] Offline Cache notice for:', url, err);
                     })
                 )
             );
@@ -35,76 +38,69 @@ self.addEventListener('install', event => {
     );
 });
 
-// ===== تفعيل - يحذف كل الكاشات القديمة فوراً =====
+// ===== تفعيل - تنظيف الكاش القديم واستلام التحكم فوراً =====
 self.addEventListener('activate', event => {
-    console.log(`[SW v${APP_VERSION}] Activating - clearing old caches...`);
+    console.log(`[SW v${APP_VERSION}] Activating PWA Offline Mode...`);
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames
                     .filter(name => name !== CACHE_NAME)
-                    .map(name => {
-                        console.log('[SW] Deleting old cache:', name);
-                        return caches.delete(name);
-                    })
+                    .map(name => caches.delete(name))
             );
-        }).then(() => {
-            console.log(`[SW v${APP_VERSION}] Now controlling all clients`);
-            // يأخذ تحكم كل التبويبات المفتوحة فوراً
-            return self.clients.claim();
-        }).then(() => {
-            // يخبر كل التبويبات بالتحديث
-            return self.clients.matchAll().then(clients => {
-                clients.forEach(client => {
-                    client.postMessage({ type: 'SW_UPDATED', version: APP_VERSION });
-                });
-            });
-        })
+        }).then(() => self.clients.claim())
     );
 });
 
-// ===== استراتيجية Network First - دايماً يجيب من النت أولاً =====
+// ===== استراتيجية Cache First الفورية (0ms) للعمل بدون إنترنت 100% =====
 self.addEventListener('fetch', event => {
-    // تجاهل chrome-extension وغيره
     if (!event.request.url.startsWith('http')) return;
     if (event.request.method !== 'GET') return;
 
     const url = new URL(event.request.url);
 
-    // API calls (سعر الصرف) - Network Only
+    // أسعار الصرف الخارجية فقط (Network First)
     if (url.hostname.includes('exchangerate') || url.hostname.includes('api.')) {
         event.respondWith(
-            fetch(event.request)
-                .catch(() => caches.match(event.request))
+            fetch(event.request).catch(() => caches.match(event.request))
         );
         return;
     }
 
-    // الملفات المحلية (HTML, CSS, JS) - Network First مع Cache Fallback
+    // لجميع أصول التطبيق والصفحات والمكتبات: Cache First للتشغيل السريع جداً 0ms بدون إنترنت
     event.respondWith(
-        fetch(event.request, { cache: 'no-cache' })
-            .then(response => {
-                if (response && response.status === 200) {
-                    const responseClone = response.clone();
+        caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) {
+                // تحديث صامت في الخلفية عند توفر الإنترنت
+                fetch(event.request).then(networkResponse => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse));
+                    }
+                }).catch(() => { /* أوفلاين صامت دون أي تعطيل */ });
+
+                return cachedResponse;
+            }
+
+            // جلب من الشبكة وحفظ في الكاش للاستخدام المستقبلي أوفلاين
+            return fetch(event.request).then(networkResponse => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseClone = networkResponse.clone();
                     caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                 }
-                return response;
-            })
-            .catch(() => {
-                // أوفلاين - يرجع من الكاش
-                return caches.match(event.request);
-            })
+                return networkResponse;
+            }).catch(() => {
+                // إذا كان أوفلاين كلياً، ارجع للصفحة الرئيسية المحفوظة في الكاش
+                if (event.request.mode === 'navigate') {
+                    return caches.match('./index.html');
+                }
+            });
+        })
     );
 });
 
-// ===== رسائل من التطبيق =====
+// ===== إدارة الرسائل =====
 self.addEventListener('message', event => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
-    }
-    if (event.data && event.data.type === 'CLEAR_CACHE') {
-        caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => {
-            if (event.ports[0]) event.ports[0].postMessage({ success: true });
-        });
     }
 });

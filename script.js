@@ -42,27 +42,52 @@ window.AppStorage = {
         });
     },
     getItem(key) {
-        return this.cache.hasOwnProperty(key) ? this.cache[key] : null;
+        if (this.cache.hasOwnProperty(key) && this.cache[key] !== null) {
+            return this.cache[key];
+        }
+        try {
+            const localVal = localStorage.getItem(key);
+            if (localVal !== null) {
+                this.cache[key] = localVal;
+                return localVal;
+            }
+        } catch (e) {}
+        return null;
     },
     setItem(key, value) {
         this.cache[key] = value;
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {}
         if(this.db) {
-            const tx = this.db.transaction('store', 'readwrite');
-            tx.objectStore('store').put(value, key);
+            try {
+                const tx = this.db.transaction('store', 'readwrite');
+                tx.objectStore('store').put(value, key);
+            } catch (e) {}
         }
     },
     removeItem(key) {
         delete this.cache[key];
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {}
         if(this.db) {
-            const tx = this.db.transaction('store', 'readwrite');
-            tx.objectStore('store').delete(key);
+            try {
+                const tx = this.db.transaction('store', 'readwrite');
+                tx.objectStore('store').delete(key);
+            } catch (e) {}
         }
     },
     clear() {
         this.cache = {};
+        try {
+            localStorage.clear();
+        } catch (e) {}
         if(this.db) {
-            const tx = this.db.transaction('store', 'readwrite');
-            tx.objectStore('store').clear();
+            try {
+                const tx = this.db.transaction('store', 'readwrite');
+                tx.objectStore('store').clear();
+            } catch (e) {}
         }
     }
 };
@@ -188,26 +213,57 @@ window.AppStorage = {
         };
 
         function updateLanguage(lang) {
+            if (!translations[lang]) return;
             document.documentElement.lang = lang;
             document.title = translations[lang].title;
-            document.getElementById('app-title-text').textContent = translations[lang].h1;
-            document.querySelector('#total-display h2').textContent = translations[lang].totalTitle;
-            document.getElementById('save-btn').innerHTML = '<i class="fas fa-save"></i> ' + translations[lang].saveBtn;
-            document.getElementById('share-btn').innerHTML = '<i class="fab fa-whatsapp"></i> ' + translations[lang].shareBtn;
-            document.getElementById('copy-btn').innerHTML = '<i class="fas fa-copy"></i> ' + translations[lang].copyBtn;
-            document.getElementById('clear-btn').innerHTML = '<i class="fas fa-trash-restore"></i> ' + translations[lang].clearBtn;
-            document.getElementById('modal-title').innerHTML = '<i class="fas fa-cog"></i> ' + translations[lang].settingsTitle;
+            const appTitle = document.getElementById('app-title-text');
+            if (appTitle) appTitle.textContent = translations[lang].h1;
 
-            // تحديث عناوين الأقسام
-            document.querySelector('#history-card h2').innerHTML = lang === 'ar' ? '<i class="fas fa-history"></i> سجل البيانات اليومية' : '<i class="fas fa-history"></i> Daily Records';
-            document.querySelector('#stats-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-chart-bar"></i> الإحصائيات' : '<i class="fas fa-chart-bar"></i> Statistics';
-            document.querySelector('#pdf-export-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-file-pdf"></i> تصدير PDF' : '<i class="fas fa-file-pdf"></i> Export PDF';
-            document.querySelector('#screenshot-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-camera"></i> لقطة شاشة 4K' : '<i class="fas fa-camera"></i> 4K Screenshot';
-            document.querySelector('#about-app-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-info-circle"></i> عن التطبيق والميزات' : '<i class="fas fa-info-circle"></i> About App & Features';
-            document.querySelector('#digital-report-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-wallet"></i> تقرير الرقمي' : '<i class="fas fa-wallet"></i> Digital Report';
-            document.querySelector('#mode-toggle-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-moon"></i> تبديل الوضع (داكن/فاتح)' : '<i class="fas fa-moon"></i> Toggle Mode (Dark/Light)';
-            document.querySelector('#export-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-download"></i> تصدير البيانات' : '<i class="fas fa-download"></i> Export Data';
-            document.querySelector('#import-btn').innerHTML = lang === 'ar' ? '<i class="fas fa-upload"></i> استيراد البيانات' : '<i class="fas fa-upload"></i> Import Data';
+            const totalDisplayH2 = document.querySelector('#total-display h2');
+            if (totalDisplayH2) totalDisplayH2.textContent = translations[lang].totalTitle;
+
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> ' + translations[lang].saveBtn;
+
+            const shareBtn = document.getElementById('share-btn');
+            if (shareBtn) shareBtn.innerHTML = '<i class="fab fa-whatsapp"></i> ' + translations[lang].shareBtn;
+
+            const copyBtn = document.getElementById('copy-btn');
+            if (copyBtn) copyBtn.innerHTML = '<i class="fas fa-copy"></i> ' + translations[lang].copyBtn;
+
+            const clearBtn = document.getElementById('clear-btn');
+            if (clearBtn) clearBtn.innerHTML = '<i class="fas fa-trash-restore"></i> ' + translations[lang].clearBtn;
+
+            const modalTitle = document.getElementById('modal-title');
+            if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-cog"></i> ' + translations[lang].settingsTitle;
+
+            // تحديث عناوين الأقسام بأمان
+            const historyCardH2 = document.querySelector('#history-card h2');
+            if (historyCardH2) historyCardH2.innerHTML = lang === 'ar' ? '<i class="fas fa-history"></i> سجل البيانات اليومية' : '<i class="fas fa-history"></i> Daily Records';
+
+            const statsBtn = document.querySelector('#stats-btn');
+            if (statsBtn) statsBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-chart-bar"></i> الإحصائيات' : '<i class="fas fa-chart-bar"></i> Statistics';
+
+            const pdfExportBtn = document.querySelector('#pdf-export-btn');
+            if (pdfExportBtn) pdfExportBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-file-pdf"></i> تصدير PDF' : '<i class="fas fa-file-pdf"></i> Export PDF';
+
+            const screenshotBtn = document.querySelector('#screenshot-btn');
+            if (screenshotBtn) screenshotBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-camera"></i> لقطة شاشة 4K' : '<i class="fas fa-camera"></i> 4K Screenshot';
+
+            const aboutAppBtn = document.querySelector('#about-app-btn');
+            if (aboutAppBtn) aboutAppBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-info-circle"></i> عن التطبيق والميزات' : '<i class="fas fa-info-circle"></i> About App & Features';
+
+            const digitalReportBtn = document.querySelector('#digital-report-btn');
+            if (digitalReportBtn) digitalReportBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-wallet"></i> تقرير الرقمي' : '<i class="fas fa-wallet"></i> Digital Report';
+
+            const modeToggleBtn = document.querySelector('#mode-toggle-btn');
+            if (modeToggleBtn) modeToggleBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-moon"></i> تبديل الوضع (داكن/فاتح)' : '<i class="fas fa-moon"></i> Toggle Mode (Dark/Light)';
+
+            const exportBtn = document.querySelector('#export-btn');
+            if (exportBtn) exportBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-download"></i> تصدير البيانات' : '<i class="fas fa-download"></i> Export Data';
+
+            const importBtn = document.querySelector('#import-btn');
+            if (importBtn) importBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-upload"></i> استيراد البيانات' : '<i class="fas fa-upload"></i> Import Data';
 
             // تحديث النصوص الجديدة في الإعدادات والواجهة
             document.getElementById('tools-title').innerHTML = '<i class="fas fa-toolbox"></i> ' + translations[lang].toolsTitle;
@@ -538,15 +594,17 @@ window.AppStorage = {
                     title: 'لا توجد بيانات',
                     text: 'لا توجد عملات مسجلة لعرض تفاصيلها.',
                     icon: 'info',
-                    background: 'var(--card-background)',
-                    color: 'var(--text-color)'
+                    background: '#FFFFFF',
+                    color: '#0F172A',
+                    customClass: { popup: 'details-modal-white-popup' }
                 });
                 return;
             }
 
             let html = '<div style="text-align: right; direction: rtl;">';
-            html += '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
-            html += '<tr style="border-bottom: 2px solid var(--primary-color); color: var(--primary-color);"><th style="padding: 10px; text-align: right;">الفئة</th><th style="padding: 10px; text-align: center;">العدد</th><th style="padding: 10px; text-align: left;">الإجمالي</th></tr>';
+            html += '<div class="details-table-wrapper">';
+            html += '<table class="details-table">';
+            html += '<thead><tr><th style="text-align: right; width: 40%;">الفئة</th><th style="text-align: center; width: 30%;">العدد</th><th style="text-align: left; width: 30%;">الإجمالي</th></tr></thead><tbody>';
 
             // ترتيب الفئات من الأكبر للأصغر
             const sortedKeys = Object.keys(details).sort((a, b) => parseFloat(b) - parseFloat(a));
@@ -556,29 +614,29 @@ window.AppStorage = {
                 const noteValue = parseFloat(value);
                 const rowTotal = (noteValue * count).toFixed(2);
                 const icon = icons[noteValue] || '💰';
-                html += `<tr style="border-bottom: 1px solid rgba(255,215,0,0.1);">
-                    <td style="padding: 12px 10px;">${icon} ${noteValue} جنيه</td>
-                    <td style="padding: 12px 10px; text-align: center; font-weight: bold; color: var(--gold-light);">${count} ورقة</td>
-                    <td style="padding: 12px 10px; text-align: left; font-weight: bold;">${rowTotal}</td>
+                html += `<tr>
+                    <td style="text-align: right; font-weight: 700;">${icon} ${noteValue} جنيه</td>
+                    <td style="text-align: center; font-weight: bold; color: #4F46E5;">${count} ورقة</td>
+                    <td style="text-align: left; font-weight: bold; color: #0F172A;">${rowTotal}</td>
                 </tr>`;
             });
 
-            html += `<tr style="background: rgba(255,215,0,0.05); font-weight: 900; font-size: 1.1em;">
-                <td style="padding: 15px 10px;">الإجمالي</td>
-                <td style="padding: 15px 10px; text-align: center; color: var(--gold-primary);">${totalPapers} ورقة</td>
-                <td style="padding: 15px 10px; text-align: left; color: var(--gold-primary);">${total.toFixed(2)}</td>
-            </tr>`;
+            html += `</tbody><tfoot><tr class="total-row">
+                <td style="text-align: right; font-weight: 900;">الإجمالي الكلي</td>
+                <td style="text-align: center; font-weight: 900; color: #6D28D9;">${totalPapers} ورقة</td>
+                <td style="text-align: left; font-weight: 900; color: #6D28D9;">${total.toFixed(2)}</td>
+            </tr></tfoot>`;
 
-            html += '</table></div>';
+            html += '</table></div></div>';
 
             Swal.fire({
                 title: title,
                 html: html,
-                confirmButtonText: 'إغلاق',
-                confirmButtonColor: 'var(--primary-color)',
-                background: 'var(--card-background)',
-                color: 'var(--text-color)',
-                customClass: { popup: 'swal2-popup' }
+                confirmButtonText: 'إغلاق المعاينة',
+                confirmButtonColor: '#8B5CF6',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                customClass: { popup: 'details-modal-white-popup' }
             });
         }
 
@@ -626,19 +684,24 @@ window.AppStorage = {
             const now = new Date();
             const localDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
             document.getElementById('entry-date').value = localDate;
+            document.getElementById('date-filter-input').value = localDate;
             calculateTotal();
 
-            if (resetFilters) {
-                document.getElementById('date-filter-input').value = localDate;
-                document.getElementById('search-input').value = '';
-                loadHistory(localDate);
-            } else {
-                document.getElementById('search-input').value = '';
-                loadHistory(document.getElementById('date-filter-input').value);
-            }
+            document.getElementById('search-input').value = '';
+            loadHistory(localDate);
         }
 
         // تم استعادة وظائف السجل بالكامل مع إضافة البحث وعرض آخر عملية
+        // دالة جلب تاريخ اليوم المحلي بتنسيق YYYY-MM-DD متوافق مع المناطق الزمنية
+        function getTodayLocalDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // دالة تحميل وسجل البيانات اليومية المتكاملة
         function loadHistory(filterDate = null, searchTerm = '') {
             let history = [];
             try {
@@ -648,19 +711,36 @@ window.AppStorage = {
             }
             historyList.innerHTML = '';
 
-            let historyToDisplay = [];
+            const todayDate = getTodayLocalDate();
+            const dateFilterElem = document.getElementById('date-filter-input');
 
-            // 1. تحديد السجلات المطابقة للفلتر
-            if (filterDate) {
-                historyToDisplay = history.filter(item => item.simpleDate === filterDate);
-            } else {
-                historyToDisplay = history;
+            // 1. تعبئة التاريخ تلقائياً بتاريخ اليوم الحالي عند فتح الصفحة إذا لم يحدد المستخدم تاريخاً
+            if (!filterDate || filterDate === 'TODAY') {
+                filterDate = (dateFilterElem && dateFilterElem.value) ? dateFilterElem.value : todayDate;
+            }
+            
+            if (dateFilterElem && filterDate !== 'ALL') {
+                dateFilterElem.value = filterDate;
             }
 
-            // 2. تطبيق البحث
+            let historyToDisplay = [];
+
+            // 2. التصفية حسب التاريخ المختار
+            if (filterDate && filterDate !== 'ALL') {
+                const normFilter = filterDate.replace(/-0/g, '-');
+                historyToDisplay = history.filter(item => {
+                    if (!item.simpleDate) return false;
+                    const normItem = item.simpleDate.replace(/-0/g, '-');
+                    return item.simpleDate === filterDate || normItem === normFilter;
+                });
+            } else {
+                historyToDisplay = history; // عرض الكل
+            }
+
+            // 3. التصفية حسب البحث
             if (searchTerm) {
+                const searchLower = searchTerm.toLowerCase();
                 historyToDisplay = historyToDisplay.filter(item => {
-                    const searchLower = searchTerm.toLowerCase();
                     return item.timestamp.toLowerCase().includes(searchLower) ||
                         item.total.toString().includes(searchTerm) ||
                         (item.note && item.note.toLowerCase().includes(searchLower)) ||
@@ -675,46 +755,18 @@ window.AppStorage = {
                 });
             }
 
-            // 3. المنطق الجديد: جلب "آخر عملية مسجلة" بغض النظر عن التاريخ
-            // شرط: إذا كان هناك سجلات أصلاً، السجل الأول في المصفوفة هو الأحدث دائماً (لأننا نستخدم unshift)
-            let lastOperation = null;
-            if (history.length > 0) {
-                lastOperation = history[0];
-            }
-
-            // هل آخر عملية موجودة بالفعل ضمن القائمة المعروضة؟
-            const isLastOpInList = lastOperation && historyToDisplay.some(item => item.id === lastOperation.id);
-
-            // إذا لم تكن موجودة، وكان المستخدم يفلتر، نعرضها في الأعلى كـ "آخر عملية"
-            if (lastOperation && !isLastOpInList && filterDate && !searchTerm) {
-                // نعرضها مميزة
-                renderHistoryItem(lastOperation, true); // true تعني "مميز كآخر عملية"
-
-                // فاصل
-                const separator = document.createElement('div');
-                separator.innerHTML = `<div style="text-align: center; margin: 10px 0; font-size: 0.8em; color: var(--secondary-color); opacity: 0.7;">--- سجلات ${filterDate} ---</div>`;
-                historyList.appendChild(separator);
-            }
-
-            // حساب وعرض مجموع السجلات المعروضة (فقط المطابقة للفلتر)
             const totalSum = historyToDisplay.reduce((sum, item) => sum + item.total, 0);
             const summaryDiv = document.getElementById('history-summary');
             const summarySpan = document.getElementById('history-total-sum');
 
+            // 4. إذا لم توجد سجلات في التاريخ المحدد، عرض رسالة "لا توجد بيانات لهذا التاريخ"
             if (historyToDisplay.length === 0) {
-                // إذا لم تكن هناك سجلات مطابقة، ولكن عرضنا آخر عملية، لا داعي لرسالة "لا توجد بيانات" بشكل مزعج
-                // لكن سنعرضها تحت الفاصل إذا تم عرض آخر عملية
-                if (!lastOperation || isLastOpInList) {
-                    const noDataMessage = filterDate ?
-                        (searchTerm ? 'لا توجد بيانات تطابق معايير البحث لهذا التاريخ.' : 'لا توجد بيانات لهذا التاريخ.') :
-                        (searchTerm ? 'لا توجد بيانات تطابق معايير البحث.' : 'لا توجد سجلات محفوظة بعد.');
-                    const li = document.createElement('li');
-                    li.innerHTML = noDataMessage;
-                    li.style.background = 'transparent';
-                    li.style.boxShadow = 'none';
-                    historyList.appendChild(li);
-                }
-                // إذا كانت هناك عملية أخيرة معروضة، لا نعرض "لا توجد بيانات" بل نكتفي بالفاصل أو لا شيء
+                const noDataMessage = searchTerm ? 'لا توجد بيانات تطابق معايير البحث.' : 'لا توجد بيانات لهذا التاريخ.';
+                const li = document.createElement('li');
+                li.innerHTML = `<div style="text-align: center; padding: 25px; color: var(--text-muted); font-weight: bold; font-size: 1em;">${noDataMessage}</div>`;
+                li.style.background = 'transparent';
+                li.style.boxShadow = 'none';
+                historyList.appendChild(li);
                 summaryDiv.style.display = 'none';
             } else {
                 summaryDiv.style.display = 'block';
@@ -822,46 +874,46 @@ window.AppStorage = {
             if (recCurrencyCode === 'usd') recordDenominations = [100, 50, 20, 10, 5, 1, 0.5, 0.25, 0.1, 0.05];
             else if (recCurrencyCode === 'eur') recordDenominations = [500, 200, 100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01];
 
-            // بناء واجهة التعديل بتصميم البطاقات (Clean UI)
-            let editHTML = '<div style="max-height: 60vh; overflow-y: auto; padding: 5px;">';
+            // بناء واجهة التعديل بتصميم بطاقة بيضاء عالية التباين (Ultra Clean Light UI)
+            let editHTML = '<div style="max-height: 60vh; overflow-y: auto; padding: 4px; direction: rtl; text-align: right; color: #0F172A;">';
 
             // قسم الخزينة الرقمية
             editHTML += `
-                <div style="background: var(--card-background); padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);">
-                    <h4 style="margin: 0 0 10px 0; color: var(--primary-color); text-align: center;"><i class="fas fa-wallet"></i> الخزينة الرقمية</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="background: #F8FAFC; padding: 12px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #E2E8F0;">
+                    <h4 style="margin: 0 0 8px 0; color: #5B21B6; text-align: center; font-size: 0.95em;"><i class="fas fa-wallet"></i> الخزينة الرقمية</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <div>
-                            <label style="font-size: 0.9em; color: #e60000; display: block; margin-bottom: 5px;">فودافون كاش</label>
-                            <input type="number" id="edit-vodafone" value="${record.vodafone || 0}" oninput="updateEditTotal()" class="digital-input" style="font-size: 1em; padding: 8px; width: 100%; box-sizing: border-box;">
+                            <label style="font-size: 0.85em; color: #DC2626; display: block; margin-bottom: 4px; font-weight: bold;">فودافون كاش</label>
+                            <input type="number" id="edit-vodafone" value="${record.vodafone || 0}" oninput="updateEditTotal()" style="font-size: 1em; padding: 8px; width: 100%; box-sizing: border-box; background: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; border-radius: 10px; font-weight: bold; text-align: center;">
                         </div>
                         <div>
-                            <label style="font-size: 0.9em; color: #6f42c1; display: block; margin-bottom: 5px;">إنستا باي</label>
-                            <input type="number" id="edit-instapay" value="${record.instapay || 0}" oninput="updateEditTotal()" class="digital-input" style="font-size: 1em; padding: 8px; width: 100%; box-sizing: border-box;">
+                            <label style="font-size: 0.85em; color: #6D28D9; display: block; margin-bottom: 4px; font-weight: bold;">إنستا باي</label>
+                            <input type="number" id="edit-instapay" value="${record.instapay || 0}" oninput="updateEditTotal()" style="font-size: 1em; padding: 8px; width: 100%; box-sizing: border-box; background: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; border-radius: 10px; font-weight: bold; text-align: center;">
                         </div>
                     </div>
                 </div>
             `;
 
-            // قسم الفئات النقدية
+            // قسم الفئات النقدية (صفوف مصفوفة في سطر واحد بدون انكسار)
             editHTML += '<div id="edit-denominations-list">';
             recordDenominations.forEach(value => {
                 const count = record.details[value.toString()] || 0;
                 const rowTotal = (value * count).toFixed(2);
 
                 editHTML += `
-                    <div class="edit-row" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 10px; background: var(--input-bg); border-radius: 12px; gap: 5px;">
-                        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 90px;">
+                    <div class="edit-row">
+                        <div style="display: flex; align-items: center; gap: 4px; min-width: 70px; white-space: nowrap;">
                             <span style="font-size: 1.1em;">${icons[value] || '💰'}</span>
-                            <span style="font-weight: bold; font-size: 0.9em;">${value}</span>
+                            <span style="font-weight: 800; font-size: 0.9em; color: #0F172A;">${value} ج</span>
                         </div>
                         
-                        <div style="display: flex; align-items: center; gap: 5px; justify-content: center;">
-                            <button type="button" onclick="adjustEditValue('${value}', 1)" style="width: 32px; height: 32px; border-radius: 50%; border: none; background: #28a745; color: white; cursor: pointer; font-size: 1.2em; display: flex; align-items: center; justify-content: center;">+</button>
-                            <input type="number" id="edit-input-${value}" data-value="${value}" value="${count}" oninput="updateEditTotal()" style="width: 50px; text-align: center; border: none; background: transparent; font-weight: bold; font-size: 1.2em; color: var(--text-color);">
-                            <button type="button" onclick="adjustEditValue('${value}', -1)" style="width: 32px; height: 32px; border-radius: 50%; border: none; background: #dc3545; color: white; cursor: pointer; font-size: 1.2em; display: flex; align-items: center; justify-content: center;">-</button>
+                        <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
+                            <button type="button" onclick="adjustEditValue('${value}', 1)" style="width: 32px; height: 32px; border-radius: 10px; border: none; background: #10B981; color: white; cursor: pointer; font-size: 1.1em; font-weight: bold; display: flex; align-items: center; justify-content: center;">+</button>
+                            <input type="number" id="edit-input-${value}" data-value="${value}" value="${count}" oninput="updateEditTotal()">
+                            <button type="button" onclick="adjustEditValue('${value}', -1)" style="width: 32px; height: 32px; border-radius: 10px; border: none; background: #EF4444; color: white; cursor: pointer; font-size: 1.1em; font-weight: bold; display: flex; align-items: center; justify-content: center;">-</button>
                         </div>
                         
-                        <div style="flex: 1; min-width: 60px; text-align: left; font-weight: bold; color: var(--secondary-color); font-size: 0.9em;">
+                        <div style="min-width: 60px; text-align: left; font-weight: 800; color: #6D28D9; font-size: 0.9em; white-space: nowrap;">
                             <span id="edit-row-total-${value}">${rowTotal}</span>
                         </div>
                     </div>
@@ -869,25 +921,25 @@ window.AppStorage = {
             });
             editHTML += '</div>';
 
-            // عرض الإجمالي
+            // بطاقة عرض الإجمالي
             editHTML += `
-                <div onclick="showEditDetailsSummary()" style="text-align: center; margin-top: 15px; padding: 15px; background: var(--total-bg); border-radius: 15px; border: 1px solid var(--primary-color); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                        <button type="button" id="reset-edit-btn" onclick="event.stopPropagation(); resetEditValues();" style="background: var(--input-bg); border: 1px solid var(--secondary-color); color: var(--text-color); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1em; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" title="استعادة القيم الأصلية (تراجع)"><i class="fas fa-undo"></i></button>
-                        <h3 style="margin: 0; font-size: 1.2em;">الإجمالي الجديد: <span id="current-edit-total" style="color: var(--primary-color); font-size: 1.3em;">${record.total.toFixed(2)}</span></h3>
+                <div onclick="showEditDetailsSummary()" style="text-align: center; margin-top: 12px; padding: 12px; background: #F5F3FF; border-radius: 16px; border: 1.5px solid #8B5CF6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                        <button type="button" id="reset-edit-btn" onclick="event.stopPropagation(); resetEditValues();" style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 0.9em; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" title="استعادة القيم الأصلية (تراجع)"><i class="fas fa-undo"></i></button>
+                        <h3 style="margin: 0; font-size: 1.1em; color: #0F172A;">الإجمالي الجديد: <span id="current-edit-total" style="color: #6D28D9; font-size: 1.25em; font-weight: 900;">${record.total.toFixed(2)}</span></h3>
                     </div>
-                    <div style="font-size: 1em; color: var(--gold-light); font-weight: bold;">
+                    <div style="font-size: 0.9em; color: #4C1D95; font-weight: 800;">
                         📄 عدد الأوراق الجديد: <span id="current-edit-papers">${record.totalPapers || 0}</span>
                     </div>
-                    <p style="font-size: 0.7em; color: var(--secondary-color); margin: 0;">(اضغط للمعاينة التفصيلية)</p>
+                    <p style="font-size: 0.75em; color: #6B7280; margin: 0;">(اضغط للمعاينة التفصيلية)</p>
                 </div>
             `;
 
             // الملاحظة
             editHTML += `
-                <div style="margin-top: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">ملاحظة:</label>
-                    <textarea id="edit-note" style="width: 100%; padding: 10px; border-radius: 10px; border: none; background: var(--input-bg); color: var(--text-color);" rows="2">${record.note || ''}</textarea>
+                <div style="margin-top: 12px;">
+                    <label style="display: block; margin-bottom: 4px; font-weight: bold; font-size: 0.9em; color: #0F172A;">ملاحظة:</label>
+                    <textarea id="edit-note" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1; background: #F8FAFC; color: #0F172A; font-family: inherit; font-size: 0.9em; box-sizing: border-box;" rows="2">${record.note || ''}</textarea>
                 </div>
             </div>`;
 
@@ -956,7 +1008,10 @@ window.AppStorage = {
                 showCancelButton: true,
                 confirmButtonText: 'حفظ التعديلات',
                 cancelButtonText: 'إلغاء',
-                customClass: { popup: 'edit-modal-popup' },
+                confirmButtonColor: '#8B5CF6',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                customClass: { popup: 'edit-modal-white-popup' },
                 preConfirm: () => {
                     const newDetails = {};
                     let newTotal = 0;
@@ -1191,12 +1246,12 @@ window.AppStorage = {
             history.unshift(dayData);
             AppStorage.setItem('cashCalculatorHistory', JSON.stringify(history.slice(0, 100)));
 
-            // تحديث فلتر التاريخ ليطابق تاريخ العملية المحفوظة
-            dateFilterInput.value = dayData.simpleDate;
+            // إظهار جميع السجلات والعملية الجديدة فوراً في بداية القائمة
+            dateFilterInput.value = '';
 
             playSound('success');
             Swal.fire({ icon: 'success', title: 'تم الحفظ بنجاح!', text: `إجمالي: ${grandTotal.toFixed(2)}` });
-            resetInputs(false);
+            resetInputs();
             document.getElementById('history-card').scrollIntoView({ behavior: 'smooth' });
         });
 
@@ -1328,11 +1383,14 @@ window.AppStorage = {
 
         backBtnSettings.addEventListener('click', resetSettingsView);
 
-        document.getElementById('stats-btn').addEventListener('click', () => {
-            showSection('stats-content', '<i class="fas fa-chart-bar"></i> الإحصائيات');
-            updateStats('today'); // تحديث الإحصائيات عند الفتح
-            renderChart('today'); // رسم الرسم البياني الافتراضي (اليوم = دائري)
-        });
+        const statsBtn = document.getElementById('stats-btn');
+        if (statsBtn) {
+            statsBtn.addEventListener('click', () => {
+                showSection('stats-content', '<i class="fas fa-chart-bar"></i> الإحصائيات');
+                updateStats('today'); // تحديث الإحصائيات عند الفتح
+                renderChart('today'); // رسم الرسم البياني الافتراضي (اليوم = دائري)
+            });
+        }
 
         // زر "عن التطبيق"
         document.getElementById('about-app-btn').addEventListener('click', () => {
@@ -1353,7 +1411,7 @@ window.AppStorage = {
             if (document.querySelector('#header-mode-toggle i')) document.querySelector('#header-mode-toggle i').className = iconClass;
 
             // تحديث درجات السمة البصرية فوراً بناءً على الوضع الجديد
-            const savedColorTheme = AppStorage.getItem('colorTheme') || 'green';
+            const savedColorTheme = AppStorage.getItem('colorTheme') || 'purple';
             changeThemeColor(savedColorTheme);
         }
 
@@ -1650,27 +1708,30 @@ window.AppStorage = {
             }
         });
 
-        // Auto filter on date change
-        dateFilterInput.addEventListener('change', () => {
-            const filterDate = dateFilterInput.value;
+        // التصفية والتحميل التلقائي الفوري بمجرد تعديل أو اختيار التاريخ من القائمة
+        const handleDateFilterChange = () => {
+            const filterDate = dateFilterInput.value || getTodayLocalDate();
             const searchTerm = searchInput.value.trim();
-            if (filterDate) {
-                loadHistory(filterDate, searchTerm);
-            } else {
-                loadHistory(null, searchTerm);
-            }
-        });
+            loadHistory(filterDate, searchTerm);
+        };
+
+        dateFilterInput.addEventListener('change', handleDateFilterChange);
+        dateFilterInput.addEventListener('input', handleDateFilterChange);
 
         document.getElementById('clear-filter-btn').addEventListener('click', () => {
-            dateFilterInput.value = '';
+            const now = new Date();
+            const todayISO = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            dateFilterInput.value = todayISO;
             searchInput.value = '';
-            loadHistory();
+            loadHistory(todayISO);
         });
 
         document.getElementById('show-all-btn').addEventListener('click', () => {
-            dateFilterInput.value = '';
+            const now = new Date();
+            const todayISO = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            dateFilterInput.value = todayISO;
             searchInput.value = '';
-            loadHistory();
+            loadHistory(null); // عرض كل العمليات مع الحفاظ على خانة التاريخ مملوءة بتاريخ اليوم
         });
 
         // إضافة البحث المباشر
@@ -1734,17 +1795,91 @@ window.AppStorage = {
             link.click();
             URL.revokeObjectURL(url);
 
-            Swal.fire({
-                icon: 'success',
-                title: 'تم حفظ النسخة الاحتياطية ✅',
-                html: `<div style="direction:rtl; text-align:right; color:var(--text-color);">
-                    <b>📁 الملف:</b> ${filename}<br>
-                    <b>📊 عدد السجلات:</b> ${history.length}<br>
-                    <b>📅 التاريخ:</b> ${now.toLocaleDateString('ar-EG')}
-                </div>`,
-                confirmButtonText: 'تمام',
-                background: 'var(--card-background)',
-                color: 'var(--text-color)'
+            // إظهار نفاذة "جاري حفظ النسخة الاحتياطية" الاحترافية المطابقة للصورة
+            triggerBackupModal(false);
+        });
+
+        // ====================================================
+        // 💾 منطق النسخ الاحتياطي التلقائي والمودال التفاعلي (مطابق للصورة) 💾
+        // ====================================================
+        window.generateFullBackupData = function () {
+            let history = [];
+            try {
+                history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]');
+            } catch (e) { }
+
+            const userName = AppStorage.getItem('userName') || 'bayan';
+            const userPhone = AppStorage.getItem('userPhone') || '';
+            const userRole = AppStorage.getItem('userRole') || '';
+            const userAvatar = AppStorage.getItem('userAvatar') || '👤';
+
+            return {
+                version: '4.2',
+                exportDate: new Date().toISOString(),
+                appName: 'حاسبة النقد الاحترافية',
+                user: { name: userName, phone: userPhone, role: userRole, avatar: userAvatar },
+                settings: {
+                    currency: AppStorage.getItem('selectedCurrency') || 'egp',
+                    language: AppStorage.getItem('selectedLanguage') || 'ar',
+                    theme: AppStorage.getItem('theme') || 'dark',
+                    exchangeRate: AppStorage.getItem('exchangeRate') || '',
+                    soundEnabled: AppStorage.getItem('soundEnabled') || 'true'
+                },
+                inputs: JSON.parse(AppStorage.getItem('cashCalculatorInputs') || '{}'),
+                history: history,
+                totalRecords: history.length
+            };
+        };
+
+        window.triggerBackupModal = function (autoDownload = true) {
+            const overlay = document.getElementById('backup-modal-overlay');
+            if (overlay) overlay.style.display = 'flex';
+            playSound('save');
+
+            const backupData = generateFullBackupData();
+            const dataStr = JSON.stringify(backupData, null, 2);
+            AppStorage.setItem('bayan_last_auto_backup', dataStr);
+
+            if (autoDownload) {
+                const now = new Date();
+                const dateStamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const filename = `bayan_backup_${dateStamp}.json`;
+
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+        };
+
+        window.closeBackupModal = function () {
+            const overlay = document.getElementById('backup-modal-overlay');
+            if (overlay) overlay.style.display = 'none';
+        };
+
+        // ربط أزرار النسخ الاحتياطي التلقائي ومستمع إغلاق التطبيق
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadBtn = document.getElementById('download-backup-now-btn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => {
+                    triggerBackupModal(true);
+                });
+            }
+
+            // حفظ نسخة احتياطية تلقائية عند الخروج من التطبيق أو إغلاق الصفحة
+            window.addEventListener('beforeunload', () => {
+                const backupData = generateFullBackupData();
+                AppStorage.setItem('bayan_exit_auto_backup', JSON.stringify(backupData));
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') {
+                    const backupData = generateFullBackupData();
+                    AppStorage.setItem('bayan_exit_auto_backup', JSON.stringify(backupData));
+                }
             });
         });
 
@@ -2170,7 +2305,7 @@ window.AppStorage = {
             if (document.querySelector('#mode-toggle-btn i')) document.querySelector('#mode-toggle-btn i').className = iconClass;
             if (document.querySelector('#header-mode-toggle i')) document.querySelector('#header-mode-toggle i').className = iconClass;
 
-            const savedColorTheme = AppStorage.getItem('colorTheme') || 'green';
+            const savedColorTheme = AppStorage.getItem('colorTheme') || 'purple';
             changeThemeColor(savedColorTheme);
 
             // تمييز اللون المختار في الإعدادات
@@ -2702,24 +2837,98 @@ window.AppStorage = {
             playSound('tick');
         }
 
+        async function checkPassword() {
+            const isPasswordEnabled = AppStorage.getItem('passwordEnabled') === 'true';
+            const appPassword = AppStorage.getItem('appPassword');
+            if (!isPasswordEnabled || !appPassword) return true;
+
+            const { value: enteredPassword } = await Swal.fire({
+                title: '🔒 حماية كلمة المرور',
+                text: 'الرجاء إدخال كلمة المرور للمتابعة:',
+                input: 'password',
+                inputPlaceholder: 'كلمة المرور',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                confirmButtonText: 'دخول',
+                confirmButtonColor: 'var(--primary-color)'
+            });
+
+            if (enteredPassword === appPassword) {
+                return true;
+            } else {
+                Swal.fire('خطأ', 'كلمة المرور غير صحيحة!', 'error').then(() => {
+                    location.reload();
+                });
+                return false;
+            }
+        }
+
+        function checkUserProfile() {
+            const userName = AppStorage.getItem('userName');
+            const userRole = AppStorage.getItem('userRole');
+            const userEmail = AppStorage.getItem('userEmail');
+            const userPhone = AppStorage.getItem('userPhone');
+            const userAvatar = AppStorage.getItem('userAvatar') || '👤';
+
+            const nameInput = document.getElementById('user-name-input');
+            const roleInput = document.getElementById('user-role-input');
+            const emailInput = document.getElementById('user-email-input');
+            const phoneInput = document.getElementById('user-phone-input');
+            const currentAvatar = document.getElementById('current-avatar');
+
+            if (nameInput && userName) nameInput.value = userName;
+            if (roleInput && userRole) roleInput.value = userRole;
+            if (emailInput && userEmail) emailInput.value = userEmail;
+            if (phoneInput && userPhone) phoneInput.value = userPhone;
+            if (currentAvatar) currentAvatar.textContent = userAvatar;
+
+            updateWelcomeMessage();
+        }
+
+        function loadTheme() {
+            const savedThemeMode = AppStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedThemeMode);
+            
+            const savedColorTheme = AppStorage.getItem('colorTheme') || 'purple';
+            changeThemeColor(savedColorTheme);
+
+            const iconClass = savedThemeMode === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            const modeToggleBtn = document.querySelector('#mode-toggle-btn i');
+            if (modeToggleBtn) modeToggleBtn.className = iconClass;
+            const headerModeToggle = document.querySelector('#header-mode-toggle i');
+            if (headerModeToggle) headerModeToggle.className = iconClass;
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             await AppStorage.init(); // Initialize IndexedDB Cache
             const accessGranted = await checkPassword();
             if (!accessGranted) return;
 
-            checkUserProfile(); // التحقق من الاسم عند البدء
-            createUI();
-            loadInputs();
+            createUI(); // بناء جدول الفئات النقدية (200، 100، 50...)
+            loadInputs(); // تحميل المدخلات المحفوظة
+            checkUserProfile(); // التحقق من الملف الشخصي والترحيب عند البدء
             loadTheme();
             updateMathHistoryUI(); // تحميل سجل الحاسبة
 
-            // تعيين تاريخ اليوم تلقائياً للفلتر (بالتوقيت المحلي)
-            const nowLocal = new Date();
-            const todayDate = nowLocal.getFullYear() + '-' + String(nowLocal.getMonth() + 1).padStart(2, '0') + '-' + String(nowLocal.getDate()).padStart(2, '0');
-            document.getElementById('date-filter-input').value = todayDate;
+            // تعبئة وتزامن تاريخ اليوم تلقائياً مع السجل لمنع أي مساحة فارغة
+            const nowDate = new Date();
+            const todayISO = nowDate.getFullYear() + '-' + String(nowDate.getMonth() + 1).padStart(2, '0') + '-' + String(nowDate.getDate()).padStart(2, '0');
+            
+            const entryDateElem = document.getElementById('entry-date');
+            const dateFilterElem = document.getElementById('date-filter-input');
+            
+            if (entryDateElem && !entryDateElem.value) entryDateElem.value = todayISO;
+            if (dateFilterElem) dateFilterElem.value = entryDateElem ? entryDateElem.value : todayISO;
 
-            // تحميل السجل بتاريخ اليوم
-            loadHistory(todayDate);
+            // ربط تزامن تغيير التاريخ في الأعلى مع السجل
+            if (entryDateElem) {
+                entryDateElem.addEventListener('change', (e) => {
+                    if (dateFilterElem) dateFilterElem.value = e.target.value;
+                    loadHistory(e.target.value);
+                });
+            }
+
+            loadHistory(dateFilterElem ? dateFilterElem.value : todayISO);
             calculateTotal();
 
             // إعلام سريع بأن التاريخ تم تحديثه
@@ -2752,8 +2961,8 @@ window.AppStorage = {
                 Toast.fire({ icon: 'info', title: 'مرحباً بعودتك 👋', text: `آخر دخول: ${lastLogin}` });
             }
 
-            const now = new Date().toLocaleString('ar-EG', { dateStyle: 'full', timeStyle: 'medium' });
-            loginLogs.unshift(now);
+            const currentLoginTime = new Date().toLocaleString('ar-EG', { dateStyle: 'full', timeStyle: 'medium' });
+            loginLogs.unshift(currentLoginTime);
             if (loginLogs.length > 50) loginLogs = loginLogs.slice(0, 50); // الاحتفاظ بآخر 50 دخول فقط
             AppStorage.setItem('appLoginLogs', JSON.stringify(loginLogs));
 
@@ -2810,25 +3019,100 @@ window.AppStorage = {
             }
         });
 
-        document.getElementById('lock-on-hide').addEventListener('change', (e) => {
-            AppStorage.setItem('lockOnHide', e.target.checked);
-        });
+        // ---------------------------------------------------------
+        // 🔊 محرك الأصوات التفاعلية المطور (Web Audio API Synthesizer) 🔊
+        // ---------------------------------------------------------
+        window.playSound = function(type = 'tick') {
+            const isEnabled = AppStorage.getItem('soundEnabled');
+            if (isEnabled === 'false' || isEnabled === false) return;
 
-        document.getElementById('auto-lock-timer').addEventListener('change', (e) => {
-            AppStorage.setItem('autoLockTimer', e.target.value);
-            resetIdleTimer();
-        });
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                if (!window._appAudioCtx) window._appAudioCtx = new AudioCtx();
+                const ctx = window._appAudioCtx;
+                if (ctx.state === 'suspended') ctx.resume();
 
-        document.getElementById('sound-toggle').addEventListener('change', (e) => {
-            AppStorage.setItem('soundEnabled', e.target.checked);
-        });
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'tick') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1400, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'success') {
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+
+                    osc.type = 'triangle';
+                    osc2.type = 'sine';
+
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+
+                    osc2.frequency.setValueAtTime(1046.5, now + 0.16);
+
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    gain2.gain.setValueAtTime(0.12, now + 0.16);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                    osc2.start(now + 0.16);
+                    osc2.stop(now + 0.35);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.linearRampToValueAtTime(120, now + 0.15);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                }
+            } catch (e) {
+                console.warn('Audio engine notice', e);
+            }
+        };
+
+        // تفعيل الصوت فور أول لمسة للشاشة
+        document.addEventListener('touchstart', () => {
+            if (window._appAudioCtx && window._appAudioCtx.state === 'suspended') {
+                window._appAudioCtx.resume();
+            }
+        }, { once: true });
+        document.addEventListener('click', () => {
+            if (window._appAudioCtx && window._appAudioCtx.state === 'suspended') {
+                window._appAudioCtx.resume();
+            }
+        }, { once: true });
+
+        const soundToggleElem = document.getElementById('sound-toggle');
+        if (soundToggleElem) {
+            const isSoundOn = AppStorage.getItem('soundEnabled') !== 'false';
+            soundToggleElem.checked = isSoundOn;
+            soundToggleElem.addEventListener('change', (e) => {
+                AppStorage.setItem('soundEnabled', e.target.checked ? 'true' : 'false');
+                if (e.target.checked) playSound('success');
+            });
+        }
 
         // ---------------------------------------------------------
         // PWA Service Worker و العمل بدون إنترنت
         // ---------------------------------------------------------
 
-        // تسجيل Service Worker الخارجي
-        if ('serviceWorker' in navigator) {
+        // تسجيل Service Worker الخارجي (فقط عند التشغيل عبر HTTP/HTTPS)
+        if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
                     .then(reg => {
@@ -3113,7 +3397,6 @@ ${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')}
         window.addEventListener('offline', updateOnlineStatus);
         updateOnlineStatus();
 
-        // --- دوال التبويب الجديدة ---
         function switchTab(tabName) {
             // إخفاء كل المحتويات
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
@@ -3124,8 +3407,9 @@ ${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')}
             const selectedTab = document.getElementById('tab-' + tabName);
             if (selectedTab) selectedTab.classList.add('active');
 
-            // تفعيل الزر (باستخدام event.currentTarget)
-            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+            // تفعيل الزر المناسب
+            const tabBtn = document.querySelector(`.tab-btn[onclick*="'${tabName}'"]`);
+            if (tabBtn) tabBtn.classList.add('active');
         }
 
         function handleLogout() {

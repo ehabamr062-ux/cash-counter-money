@@ -77,10 +77,6 @@
                     <div class="digital-label" id="instapay-label"><i class="fas fa-university"></i> إنستا باي</div>
                     <input type="number" id="instapay" class="digital-input" placeholder="المبلغ" inputmode="numeric">
                 </div>
-            </div>
-
-            <hr class="main-separator">
-
             <div id="total-display" onclick="showPapersDetails()" style="cursor: pointer;">
                 <h2>الإجمالي النقدي:</h2>
                 <span id="total-amount">0.00</span> <span id="currency-label">جنيه</span> <span id="equivalent"></span>
@@ -105,8 +101,6 @@
         <button id="copy-btn" class="btn"><i class="fas fa-copy"></i> نسخ</button>
         <button id="clear-btn" class="btn"><i class="fas fa-trash-restore"></i> تصفير</button>
     </div>
-
-    <hr class="main-separator">
 
     <div id="settings-modal"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10001; justify-content: center; align-items: center; direction: rtl; padding-bottom: env(safe-area-inset-bottom);">
@@ -137,16 +131,15 @@
             <div style="overflow-y: auto; flex: 1; padding: 18px; min-height: 0;">
 
                 <div id="settings-menu">
-                    <!-- شريط التبويب -->
+                    <!-- شريط التبويب السلس -->
                     <div class="tabs-header">
-                        <button class="tab-btn" onclick="switchTab('account')">حسابي</button>
-                        <button class="tab-btn active" onclick="switchTab('general')">عام</button>
-                        <button class="tab-btn" onclick="switchTab('stats')">الإحصائيات</button>
-                        <button class="tab-btn" onclick="switchTab('appearance')">المظهر</button>
-                        <button class="tab-btn" onclick="switchTab('data')">إدارة البيانات</button>
-                        <button class="tab-btn" onclick="switchTab('security')">الأمان</button>
-                        <button class="tab-btn" onclick="switchTab('about')">حول البرنامج</button>
-                        <button class="tab-btn" onclick="switchTab('feedback')">الملاحظات</button>
+                        <button class="tab-btn" onclick="switchTab('account')"><i class="fas fa-user-circle"></i> حسابي</button>
+                        <button class="tab-btn active" onclick="switchTab('general')"><i class="fas fa-sliders-h"></i> عام</button>
+                        <button class="tab-btn" onclick="switchTab('appearance')"><i class="fas fa-palette"></i> المظهر</button>
+                        <button class="tab-btn" onclick="switchTab('data')"><i class="fas fa-database"></i> إدارة البيانات</button>
+                        <button class="tab-btn" onclick="switchTab('security')"><i class="fas fa-shield-alt"></i> الأمان</button>
+                        <button class="tab-btn" onclick="switchTab('about')"><i class="fas fa-info-circle"></i> حول التطبيق</button>
+                        <button class="tab-btn" onclick="switchTab('feedback')"><i class="fas fa-comment-alt"></i> الملاحظات</button>
                     </div>
 
                     <!-- محتوى التبويبات -->
@@ -280,18 +273,7 @@
                         </div>
                     </div>
 
-                    <!-- تبويب الإحصائيات -->
-                    <div id="tab-stats" class="tab-pane">
-                        <div class="neu-card" style="text-align: center;">
-                            <div class="neu-card-title" style="justify-content: center;"><i
-                                    class="fas fa-chart-pie"></i> الإحصائيات وتحليل البيانات</div>
-                            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 15px;">عرض الرسوم
-                                البيانية والتحليلات التفصيلية</p>
-                            <button id="stats-btn" class="btn"
-                                style="width: 100%; background: var(--gold-gradient-simple); color: #000; font-weight: 800; border: none; padding: 14px;"><i
-                                    class="fas fa-chart-pie"></i> فتح لوحة الإحصائيات</button>
-                        </div>
-                    </div>
+
 
                     <!-- تبويب المظهر -->
                     <div id="tab-appearance" class="tab-pane">
@@ -306,16 +288,16 @@
                                 الألوان الأساسية:</label>
                             <div
                                 style="display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                                <div onclick="selectColorTheme('purple')" class="color-circle"
+                                    style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);" title="بنفسجي ملكي (الأساسي)"></div>
                                 <div onclick="selectColorTheme('gold')" class="color-circle"
-                                    style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); box-shadow: 0 0 10px var(--border-color);"
+                                    style="background: linear-gradient(135deg, #D4AF37, #996515);"
                                     title="ذهبي فاخر"></div>
                                 <div onclick="selectColorTheme('blue')" class="color-circle"
-                                    style="background: #007bff;" title="أزرق كلاسيك"></div>
+                                    style="background: #3B82F6;" title="أزرق كلاسيك"></div>
                                 <div onclick="selectColorTheme('green')" class="color-circle"
-                                    style="background: #28a745;" title="أخضر مريح"></div>
-                                <div onclick="selectColorTheme('purple')" class="color-circle"
-                                    style="background: #6f42c1;" title="بنفسجي ملكي"></div>
-                                <div onclick="selectColorTheme('red')" class="color-circle" style="background: #dc3545;"
+                                    style="background: #10B981;" title="أخضر مريح"></div>
+                                <div onclick="selectColorTheme('red')" class="color-circle" style="background: #EF4444;"
                                     title="أحمر جريء"></div>
                             </div>
 
@@ -460,11 +442,11 @@
                         <h2
                             style="margin: 0; font-size: 1.8em; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 900;">
                             حاسبة النقد الاحترافية</h2>
-                        <p style="color: var(--primary-color); font-weight: 800; margin-top: 5px; font-size: 1.1em;">الإصدار 4.2
-                            Pro ⭐</p>
+                        <p style="color: var(--primary-color); font-weight: 800; margin-top: 5px; font-size: 1.1em;">الإصدار 5.0
+                            Pro (النسخة المستقرة) ⭐</p>
 
                         <!-- زر عرض التحديثات الجديد -->
-                        <button onclick="localStorage.removeItem('announcement_v4_2_seen'); location.reload();"
+                        <button onclick="localStorage.removeItem('announcement_v5_0_seen'); location.reload();"
                             class="btn"
                             style="margin-top: 15px; background: var(--border-color); border: 1px solid var(--gold-primary); color: var(--gold-primary); font-size: 0.85em; padding: 8px 15px; border-radius: 20px; font-weight: bold;">
                             <i class="fas fa-sparkles"></i> ما الجديد في هذا الإصدار؟
@@ -475,103 +457,59 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
                         <!-- قسم العد الذكي -->
-                        <div class="avatar-category-title"><i class="fas fa-coins"></i> مميزات العد الذكي</div>
-                        <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                            <ul
-                                style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-check-circle" style="color: var(--primary-color);"></i> حاسبة فئات النقدية
-                                    الشاملة</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-layer-group" style="color: var(--primary-color);"></i> عد الأوراق (العدد
-                                    والنوع)</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-globe-africa" style="color: var(--primary-color);"></i> دعم العملات (EGP,
-                                    USD, EUR)</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-sync-alt" style="color: var(--primary-color);"></i> تحديث أسعار الصرف آلياً
-                                </li>
+                        <div class="neu-card" style="margin-bottom: 0; padding: 18px;">
+                            <div class="neu-card-title"><i class="fas fa-coins"></i> مميزات العد الذكي</div>
+                            <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-check-circle" style="color: var(--primary-color);"></i> حاسبة فئات النقدية الشاملة</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-layer-group" style="color: var(--primary-color);"></i> عد الأوراق (العدد والنوع)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-globe-africa" style="color: var(--primary-color);"></i> دعم العملات (EGP, USD, EUR)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-sync-alt" style="color: var(--primary-color);"></i> تحديث أسعار الصرف آلياً</li>
                             </ul>
                         </div>
 
                         <!-- قسم المحفظة والعهدة -->
-                        <div class="avatar-category-title"><i class="fas fa-wallet"></i> المحفظة والعهدة</div>
-                        <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                            <ul
-                                style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px;">
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-mobile-alt" style="color: #e60000;"></i> فودافون كاش & أورنج
-                                    كاش</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-university" style="color: #6f42c1;"></i> إنستا باي (جميع
-                                    البنوك)</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-balance-scale-left" style="color: var(--primary-color);"></i> مطابقة العهدة
-                                    (عجز وزيادة)</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-calculator" style="color: var(--primary-color);"></i> آلة حاسبة رياضية بـ
-                                    "سجل"</li>
+                        <div class="neu-card" style="margin-bottom: 0; padding: 18px;">
+                            <div class="neu-card-title"><i class="fas fa-wallet"></i> المحفظة والعهدة</div>
+                            <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-mobile-alt" style="color: #e60000;"></i> فودافون كاش & أورنج كاش</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-university" style="color: #6f42c1;"></i> إنستا باي (جميع البنوك)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-balance-scale-left" style="color: var(--primary-color);"></i> مطابقة العهدة (عجز وزيادة)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-calculator" style="color: var(--primary-color);"></i> آلة حاسبة رياضية بـ "سجل"</li>
                             </ul>
                         </div>
 
                         <!-- قسم السجلات والتقارير -->
-                        <div class="avatar-category-title"><i class="fas fa-file-invoice-dollar"></i> السجلات
-                            والتقارير</div>
-                        <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                            <ul
-                                style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px;">
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-history" style="color: var(--primary-color);"></i> سجل يومي (تعديل، حذف)
-                                </li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-user-shield" style="color: var(--primary-color);"></i> سجل دخول الجهاز
-                                    (برقم سري)</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fab fa-whatsapp" style="color: #25D366;"></i> تقارير واتساب وتيلجرام
-                                </li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-camera-retro" style="color: var(--primary-color);"></i> لقطات شاشة 4K ذكية
-                                </li>
+                        <div class="neu-card" style="margin-bottom: 0; padding: 18px;">
+                            <div class="neu-card-title"><i class="fas fa-file-invoice-dollar"></i> السجلات والتقارير</div>
+                            <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-history" style="color: var(--primary-color);"></i> سجل يومي (تعديل، حذف)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-user-shield" style="color: var(--primary-color);"></i> سجل دخول الجهاز (برقم سري)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fab fa-whatsapp" style="color: #25D366;"></i> تقارير واتساب وتيلجرام</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-camera-retro" style="color: var(--primary-color);"></i> لقطات شاشة 4K ذكية</li>
                             </ul>
                         </div>
 
                         <!-- قسم الحماية والتقنية -->
-                        <div class="avatar-category-title"><i class="fas fa-shield-alt"></i> الحماية والتقنية</div>
-                        <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                            <ul
-                                style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px;">
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-lock" style="color: var(--primary-color);"></i> حماية بكلمة مرور وقفل آلي
-                                </li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-cloud-download-alt" style="color: var(--primary-color);"></i> نسخة احتياطية
-                                    (JSON)</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-wifi-slash" style="color: var(--primary-color);"></i> يعمل بدون إنترنت
-                                    (PWA)</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-chart-pie" style="color: var(--primary-color);"></i> إحصائيات ورسوم بيانية
-                                </li>
+                        <div class="neu-card" style="margin-bottom: 0; padding: 18px;">
+                            <div class="neu-card-title"><i class="fas fa-shield-alt"></i> الحماية والتقنية</div>
+                            <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-lock" style="color: var(--primary-color);"></i> حماية بكلمة مرور وقفل آلي</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-cloud-download-alt" style="color: var(--primary-color);"></i> نسخة احتياطية (JSON)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-wifi" style="color: var(--primary-color);"></i> يعمل بدون إنترنت (PWA)</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-chart-pie" style="color: var(--primary-color);"></i> إحصائيات ورسوم بيانية</li>
                             </ul>
                         </div>
 
                         <!-- قسم التخصيص والمظهر -->
-                        <div class="avatar-category-title"><i class="fas fa-magic"></i> التخصيص والمظهر</div>
-                        <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                            <ul
-                                style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 10px;">
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-palette" style="color: var(--primary-color);"></i> ثيمات وألوان متعددة</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-moon" style="color: var(--primary-color);"></i> وضع ليلي وفاخر</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-user-circle" style="color: var(--primary-color);"></i> ملف شخصي وأفاتار
-                                    مخصص</li>
-                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i
-                                        class="fas fa-volume-up" style="color: var(--primary-color);"></i> مؤثرات صوتية تفاعلية
-                                </li>
+                        <div class="neu-card" style="margin-bottom: 0; padding: 18px;">
+                            <div class="neu-card-title"><i class="fas fa-magic"></i> التخصيص والمظهر</div>
+                            <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-palette" style="color: var(--primary-color);"></i> ثيمات وألوان متعددة</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-moon" style="color: var(--primary-color);"></i> وضع ليلي وفاخر</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-user-circle" style="color: var(--primary-color);"></i> ملف شخصي وأفاتار مخصص</li>
+                                <li style="font-size: 0.85em; display: flex; align-items: center; gap: 8px;"><i class="fas fa-volume-up" style="color: var(--primary-color);"></i> مؤثرات صوتية تفاعلية</li>
                             </ul>
                         </div>
                     </div>
@@ -915,6 +853,31 @@
             <button onclick="closeAnnouncement()" class="btn"
                 style="width: 100%; background: var(--gold-gradient-simple); color: #000; font-weight: 800; border: none; padding: 15px; margin-top: 10px; border-radius: 15px; font-size: 1.1em;">ابدأ
                 الاستخدام الآن</button>
+        </div>
+    </div>
+
+    <!-- نافذة جاري حفظ النسخة الاحتياطية (تلقائية عند الخروج وإجباري) -->
+    <div id="backup-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 10, 25, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 100010; justify-content: center; align-items: center; direction: rtl; padding: 15px;">
+        <div class="backup-modal-card">
+            <div class="hourglass-icon-wrapper">
+                <i class="fas fa-hourglass-half fa-spin"></i>
+            </div>
+            <h2 class="backup-title">جاري حفظ النسخة الاحتياطية...</h2>
+            <p class="backup-subtitle">الرجاء الانتظار حتى ينتهي الحفظ وتصدير الملف</p>
+            
+            <div class="backup-location-box">
+                <span class="location-label">📍 مكان الحفظ المستهدف:</span>
+                <div class="location-path" id="backup-location-path">مجلد التنزيلات (Downloads)</div>
+            </div>
+
+            <div class="backup-actions">
+                <button id="download-backup-now-btn" class="backup-btn">
+                    <i class="fas fa-download"></i> تنزيل ملف النسخة الاحتياطية الآن
+                </button>
+                <button id="close-backup-modal-btn" class="backup-close-btn" onclick="closeBackupModal()">
+                    إغلاق ورفع القفل
+                </button>
+            </div>
         </div>
     </div>
 
