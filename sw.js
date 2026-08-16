@@ -1,5 +1,5 @@
 // ===== رقم الإصدار - غيّره مع كل تحديث =====
-const APP_VERSION = '5.0.0'; // PWA Stable Production Release
+const APP_VERSION = '5.1.1'; // PWA Perfect Edit Modal Responsive Fix
 const CACHE_NAME = `cash-calc-v${APP_VERSION}`;
 
 const STATIC_ASSETS = [
@@ -8,32 +8,39 @@ const STATIC_ASSETS = [
     './style.css',
     './script.js',
     './manifest.json',
+    './icons/icon-72.png',
+    './icons/icon-96.png',
+    './icons/icon-128.png',
+    './icons/icon-144.png',
+    './icons/icon-152.png',
     './icons/icon-192.png',
+    './icons/icon-384.png',
     './icons/icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
     'https://cdn.jsdelivr.net/npm/sweetalert2@11',
     'https://html2canvas.hertzen.com/dist/html2canvas.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
     'https://cdn.jsdelivr.net/npm/chart.js',
-    'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap'
+    'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap'
 ];
 
-// ===== تثبيت Service Worker - يفعّل وتخزين كافة الأصول أوفلاين =====
+// ===== تثبيت Service Worker - يفعّل ويخزن كافة الأصول أوفلاين 100% =====
 self.addEventListener('install', event => {
-    console.log(`[SW v${APP_VERSION}] Installing Offline PWA...`);
+    console.log(`[SW v${APP_VERSION}] Installing 100% Offline PWA Engine...`);
     self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            console.log(`[SW v${APP_VERSION}] Caching static assets`);
-            return Promise.allSettled(
-                STATIC_ASSETS.map(url =>
-                    fetch(url, { mode: 'cors' }).then(response => {
-                        if (response.ok) return cache.put(url, response);
-                    }).catch(err => {
-                        console.warn('[SW] Offline Cache notice for:', url, err);
-                    })
-                )
-            );
+        caches.open(CACHE_NAME).then(async cache => {
+            console.log(`[SW v${APP_VERSION}] Precaching static assets`);
+            for (const url of STATIC_ASSETS) {
+                try {
+                    const response = await fetch(url, { mode: url.startsWith('http') && !url.includes(location.hostname) ? 'cors' : 'same-origin' });
+                    if (response && (response.ok || response.type === 'opaque')) {
+                        await cache.put(url, response);
+                    }
+                } catch (err) {
+                    console.warn('[SW] Offline caching fallback for:', url, err);
+                }
+            }
         })
     );
 });

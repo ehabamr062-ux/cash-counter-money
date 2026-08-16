@@ -1,89 +1,127 @@
 
-// --- IndexedDB Wrapper for Seamless Migration ---
+// --- محرك قاعدة البيانات الهجين فائق السرعة والمثبت دائمًا ضد التحديث (Zero-Loss Synchronous Hybrid Storage) ---
 window.AppStorage = {
     cache: {},
     db: null,
+    writeQueue: {},
+    writeTimer: null,
+    
+    initSync() {
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                this.cache[k] = localStorage.getItem(k);
+            }
+        } catch (e) {}
+    },
+
     async init() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('BayanPOS_DB', 1);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('store')) {
-                    db.createObjectStore('store');
-                }
-            };
-            request.onsuccess = (e) => {
-                this.db = e.target.result;
-                const transaction = this.db.transaction('store', 'readonly');
-                const store = transaction.objectStore('store');
-                const req = store.getAll();
-                const keysReq = store.getAllKeys();
-                req.onsuccess = () => {
-                    keysReq.onsuccess = () => {
-                        const values = req.result;
-                        const keys = keysReq.result;
-                        keys.forEach((key, i) => {
-                            this.cache[key] = values[i];
-                        });
-                        
-                        // Migrate from localStorage if IndexedDB is empty
-                        if (keys.length === 0 && localStorage.length > 0) {
-                            for (let i = 0; i < localStorage.length; i++) {
-                                const k = localStorage.key(i);
-                                const v = localStorage.getItem(k);
-                                this.setItem(k, v);
-                            }
-                        }
-                        resolve();
-                    };
+        this.initSync();
+        return new Promise((resolve) => {
+            try {
+                const request = indexedDB.open('CashCalc_DB', 2);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('store')) {
+                        db.createObjectStore('store');
+                    }
                 };
-            };
-            request.onerror = () => resolve(); // fallback to empty cache
+                request.onsuccess = (e) => {
+                    this.db = e.target.result;
+                    const transaction = this.db.transaction('store', 'readonly');
+                    const store = transaction.objectStore('store');
+                    
+                    const req = store.openCursor();
+                    req.onsuccess = (event) => {
+                        const cursor = event.target.result;
+                        if (cursor) {
+                            // دمج البيانات: كاش وقاعدة بيانات
+                            if (this.cache[cursor.key] === undefined || this.cache[cursor.key] === null) {
+                                this.cache[cursor.key] = cursor.value;
+                                try { localStorage.setItem(cursor.key, cursor.value); } catch (err) {}
+                            }
+                            cursor.continue();
+                        } else {
+                            // مزامنة أي بيانات جديدة من الـ cache إلى الـ IDB
+                            for (const key in this.cache) {
+                                this.setItem(key, this.cache[key]);
+                            }
+                            resolve();
+                        }
+                    };
+                    req.onerror = () => resolve();
+                };
+                request.onerror = () => resolve();
+            } catch (err) {
+                resolve();
+            }
         });
     },
+
+    // قراءة فورية في 0ms
     getItem(key) {
-        if (this.cache.hasOwnProperty(key) && this.cache[key] !== null) {
+        if (this.cache[key] !== undefined && this.cache[key] !== null) {
             return this.cache[key];
         }
         try {
-            const localVal = localStorage.getItem(key);
-            if (localVal !== null) {
-                this.cache[key] = localVal;
-                return localVal;
+            const v = localStorage.getItem(key);
+            if (v !== null) {
+                this.cache[key] = v;
+                return v;
             }
         } catch (e) {}
         return null;
     },
+
+    // حفظ فوري في الذاكرة + localStorage + كتابة آمنة في IndexedDB
     setItem(key, value) {
         this.cache[key] = value;
-        try {
-            localStorage.setItem(key, value);
-        } catch (e) {}
-        if(this.db) {
-            try {
-                const tx = this.db.transaction('store', 'readwrite');
-                tx.objectStore('store').put(value, key);
-            } catch (e) {}
+        try { localStorage.setItem(key, value); } catch (e) {}
+
+        if (this.db) {
+            this.writeQueue[key] = value;
+            if (!this.writeTimer) {
+                this.writeTimer = setTimeout(() => {
+                    this.flushQueue();
+                }, 40);
+            }
         }
     },
+
+    flushQueue() {
+        if (!this.db || Object.keys(this.writeQueue).length === 0) {
+            this.writeTimer = null;
+            return;
+        }
+        try {
+            const tx = this.db.transaction('store', 'readwrite');
+            const store = tx.objectStore('store');
+            for (const key in this.writeQueue) {
+                store.put(this.writeQueue[key], key);
+            }
+            this.writeQueue = {};
+        } catch (e) {
+        } finally {
+            this.writeTimer = null;
+        }
+    },
+
     removeItem(key) {
         delete this.cache[key];
-        try {
-            localStorage.removeItem(key);
-        } catch (e) {}
-        if(this.db) {
+        try { localStorage.removeItem(key); } catch (e) {}
+        if (this.db) {
             try {
                 const tx = this.db.transaction('store', 'readwrite');
                 tx.objectStore('store').delete(key);
             } catch (e) {}
         }
     },
+
     clear() {
         this.cache = {};
-        try {
-            localStorage.clear();
-        } catch (e) {}
-        if(this.db) {
+        this.writeQueue = {};
+        try { localStorage.clear(); } catch (e) {}
+        if (this.db) {
             try {
                 const tx = this.db.transaction('store', 'readwrite');
                 tx.objectStore('store').clear();
@@ -91,6 +129,9 @@ window.AppStorage = {
         }
     }
 };
+
+// تهيئة فورية للكاش المتزامن فور تحميل السكريبت
+window.AppStorage.initSync();
 // ------------------------------------------------
 
         /* ---------------------------------------------------- */
@@ -265,56 +306,68 @@ window.AppStorage = {
             const importBtn = document.querySelector('#import-btn');
             if (importBtn) importBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-upload"></i> استيراد البيانات' : '<i class="fas fa-upload"></i> Import Data';
 
-            // تحديث النصوص الجديدة في الإعدادات والواجهة
-            document.getElementById('tools-title').innerHTML = '<i class="fas fa-toolbox"></i> ' + translations[lang].toolsTitle;
-            document.getElementById('appearance-title').innerHTML = '<i class="fas fa-sliders-h"></i> ' + translations[lang].appearanceTitle;
-            document.getElementById('security-title').innerHTML = '<i class="fas fa-shield-alt"></i> ' + translations[lang].securityTitle;
-            document.getElementById('sound-label-text').textContent = translations[lang].soundLabel;
-            document.getElementById('theme-colors-label').textContent = translations[lang].themeColorsLabel;
-            document.getElementById('currency-label-settings').textContent = translations[lang].currencyLabelSettings;
-            document.getElementById('exchange-rate-label').textContent = translations[lang].exchangeRateLabel;
-            document.getElementById('system-sales-label').textContent = translations[lang].systemSalesLabel;
-            document.getElementById('language-label-settings').textContent = translations[lang].languageLabelSettings;
-            document.getElementById('password-toggle-text').textContent = translations[lang].passwordToggleLabel;
-            document.getElementById('set-password-btn').textContent = translations[lang].setPasswordBtn;
-            document.getElementById('vodafone-label').innerHTML = '<i class="fas fa-mobile-alt"></i> ' + translations[lang].vodafoneLabel;
-            document.getElementById('instapay-label').innerHTML = '<i class="fas fa-university"></i> ' + translations[lang].instapayLabel;
-            document.getElementById('cash-breakdown-label').textContent = translations[lang].cashBreakdown;
-            document.getElementById('digital-breakdown-label').textContent = translations[lang].digitalBreakdown;
-            document.getElementById('history-summary-text').textContent = translations[lang].historySummary;
+            // تحديث النصوص في الإعدادات والواجهة بأمان تام
+            const setElemText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+            const setElemHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
 
-            // تحديث placeholder للحقول
-            document.getElementById('vodafone-cash').placeholder = lang === 'ar' ? 'المبلغ' : 'Amount';
-            document.getElementById('instapay').placeholder = lang === 'ar' ? 'المبلغ' : 'Amount';
-            document.getElementById('exchange-rate').placeholder = lang === 'ar' ? '1 وحدة = ? جنيه' : '1 unit = ? EGP';
-            document.getElementById('system-total-input').placeholder = lang === 'ar' ? 'للمطابقة (العهدة)' : 'For matching (safe)';
-            document.getElementById('password-input').placeholder = lang === 'ar' ? 'كلمة مرور جديدة' : 'New password';
-            document.getElementById('search-input').placeholder = lang === 'ar' ? 'البحث في السجلات...' : 'Search records...';
+            setElemHtml('tools-title', '<i class="fas fa-toolbox"></i> ' + translations[lang].toolsTitle);
+            setElemHtml('appearance-title', '<i class="fas fa-sliders-h"></i> ' + translations[lang].appearanceTitle);
+            setElemHtml('security-title', '<i class="fas fa-shield-alt"></i> ' + translations[lang].securityTitle);
+            setElemText('sound-label-text', translations[lang].soundLabel);
+            setElemText('theme-colors-label', translations[lang].themeColorsLabel);
+            setElemText('currency-label-settings', translations[lang].currencyLabelSettings);
+            setElemText('exchange-rate-label', translations[lang].exchangeRateLabel);
+            setElemText('system-sales-label', translations[lang].systemSalesLabel);
+            setElemText('language-label-settings', translations[lang].languageLabelSettings);
+            setElemText('password-toggle-text', translations[lang].passwordToggleLabel);
+            setElemText('set-password-btn', translations[lang].setPasswordBtn);
+            setElemHtml('vodafone-label', '<i class="fas fa-mobile-alt"></i> ' + translations[lang].vodafoneLabel);
+            setElemHtml('instapay-label', '<i class="fas fa-university"></i> ' + translations[lang].instapayLabel);
+            setElemText('cash-breakdown-label', translations[lang].cashBreakdown);
+            setElemText('digital-breakdown-label', translations[lang].digitalBreakdown);
+            setElemText('history-summary-text', translations[lang].historySummary);
+
+            // تحديث placeholder للحقول بأمان
+            const setPlaceholder = (id, text) => { const el = document.getElementById(id); if (el) el.placeholder = text; };
+            setPlaceholder('vodafone-cash', lang === 'ar' ? 'المبلغ' : 'Amount');
+            setPlaceholder('instapay', lang === 'ar' ? 'المبلغ' : 'Amount');
+            setPlaceholder('exchange-rate', lang === 'ar' ? '1 وحدة = ? جنيه' : '1 unit = ? EGP');
+            setPlaceholder('system-total-input', lang === 'ar' ? 'للمطابقة (العهدة)' : 'For matching (safe)');
+            setPlaceholder('password-input', lang === 'ar' ? 'كلمة مرور جديدة' : 'New password');
+            setPlaceholder('search-input', lang === 'ar' ? 'البحث في السجلات...' : 'Search records...');
 
             // تحديث خيارات العملة
             const currencySelect = document.getElementById('currency-select');
-            currencySelect.options[0].text = lang === 'ar' ? 'جنيه مصري' : 'EGP Pound';
-            currencySelect.options[1].text = lang === 'ar' ? 'دولار أمريكي' : 'US Dollar';
-            currencySelect.options[2].text = lang === 'ar' ? 'يورو' : 'Euro';
+            if (currencySelect && currencySelect.options.length >= 3) {
+                currencySelect.options[0].text = lang === 'ar' ? 'جنيه مصري' : 'EGP Pound';
+                currencySelect.options[1].text = lang === 'ar' ? 'دولار أمريكي' : 'US Dollar';
+                currencySelect.options[2].text = lang === 'ar' ? 'يورو' : 'Euro';
+            }
 
             // تحديث خيارات اللغة
             const languageSelect = document.getElementById('language-select');
-            languageSelect.options[0].text = lang === 'ar' ? 'العربية' : 'Arabic';
-            languageSelect.options[1].text = lang === 'ar' ? 'English' : 'الإنجليزية';
+            if (languageSelect && languageSelect.options.length >= 2) {
+                languageSelect.options[0].text = lang === 'ar' ? 'العربية' : 'Arabic';
+                languageSelect.options[1].text = lang === 'ar' ? 'English' : 'الإنجليزية';
+            }
 
             // تحديث نصوص أزرار الإحصائيات
-            document.getElementById('stats-today-btn').textContent = lang === 'ar' ? 'اليوم' : 'Today';
-            document.getElementById('stats-week-btn').textContent = lang === 'ar' ? 'الأسبوع' : 'Week';
-            document.getElementById('stats-month-btn').textContent = lang === 'ar' ? 'الشهر' : 'Month';
+            setElemText('stats-today-btn', lang === 'ar' ? 'اليوم' : 'Today');
+            setElemText('stats-week-btn', lang === 'ar' ? 'الأسبوع' : 'Week');
+            setElemText('stats-month-btn', lang === 'ar' ? 'الشهر' : 'Month');
 
             // تحديث نصوص الإحصائيات
-            document.getElementById('daily-total').previousElementSibling.textContent = lang === 'ar' ? 'إجمالي اليوم' : 'Total Today';
-            document.getElementById('daily-average').previousElementSibling.textContent = lang === 'ar' ? 'متوسط اليوم' : 'Average';
-            document.getElementById('highest-record').previousElementSibling.textContent = lang === 'ar' ? 'أعلى قيمة' : 'Highest';
-            document.getElementById('total-records').previousElementSibling.textContent = lang === 'ar' ? 'عدد السجلات' : 'Records';
+            const dailyTotal = document.getElementById('daily-total');
+            if (dailyTotal && dailyTotal.previousElementSibling) dailyTotal.previousElementSibling.textContent = lang === 'ar' ? 'إجمالي اليوم' : 'Total Today';
+            const dailyAverage = document.getElementById('daily-average');
+            if (dailyAverage && dailyAverage.previousElementSibling) dailyAverage.previousElementSibling.textContent = lang === 'ar' ? 'متوسط اليوم' : 'Average';
+            const highestRecord = document.getElementById('highest-record');
+            if (highestRecord && highestRecord.previousElementSibling) highestRecord.previousElementSibling.textContent = lang === 'ar' ? 'أعلى قيمة' : 'Highest';
+            const totalRecords = document.getElementById('total-records');
+            if (totalRecords && totalRecords.previousElementSibling) totalRecords.previousElementSibling.textContent = lang === 'ar' ? 'عدد السجلات' : 'Records';
 
             // تحديث نص الفوتر
-            document.getElementById('footer-credits').textContent = lang === 'ar' ? 'حقوق ©عمرو إيهاب — كل الحقوق محفوظة' : '© Amr Ehab — All Rights Reserved';
+            setElemText('footer-credits', lang === 'ar' ? 'حقوق ©عمرو إيهاب — كل الحقوق محفوظة' : '© Amr Ehab — All Rights Reserved');
         }
 
         function updateCurrency(currency) {
@@ -365,19 +418,28 @@ window.AppStorage = {
         const settingsCard = document.getElementById('settings-card');
         const statsCard = document.getElementById('stats-card');
 
-        // دالة موحدة لإنشاء صف العملة (Widget)
+        // دالة موحدة لإنشاء صف العملة (Widget) فسيح وأنيق
         function createCurrencyRowHTML(value) {
             const displayValue = value.toFixed(value % 1 === 0 ? 0 : 2);
             const icon = icons[value] || '💰';
             const rowTotalId = `total-${value.toString().replace('.', '-')}`;
 
+            // زر الرزم (100 ورقة) للفئات الورقية
+            const isPaperNote = value >= 5;
+            const bundleBtnHTML = isPaperNote 
+                ? `<button class="bundle-quick-btn" onclick="addBundleToRow(this, 100)" title="إضافة 1 رزمة (100 ورقة)">
+                     <span class="bundle-num">100</span>
+                     <span class="bundle-txt">رزمة</span>
+                   </button>`
+                : '';
+
             return `
-                <div class="currency-info">
+                <div class="currency-info" onclick="openQuickNumpadFor(this)" title="اضغط لفتح لوحة الأرقام الفورية">
                     <div class="note-icon">${icon}</div>
                     <div class="note-value">${displayValue}</div>
                 </div>
                 
-                <button class="increment-btn">+</button>
+                <button class="increment-btn" title="زيادة 1">+</button>
                 
                 <div class="input-wrapper">
                     <input type="number" class="cash-input" data-value="${value}"
@@ -385,11 +447,14 @@ window.AppStorage = {
                     <div class="row-total-display" id="${rowTotalId}">0.00</div>
                 </div>
                 
-                <button class="decrement-btn">-</button>
-                
-                <button class="lock-btn" onclick="toggleLock(this)" title="قفل هذه الفئة">
-                    <i class="fas fa-unlock"></i>
-                </button>
+                <button class="decrement-btn" title="نقصان 1">−</button>
+
+                <div class="row-quick-tools">
+                    ${bundleBtnHTML}
+                    <button class="lock-btn" onclick="toggleLock(this)" title="قفل الفئة">
+                        <i class="fas fa-unlock"></i>
+                    </button>
+                </div>
             `;
         }
 
@@ -439,31 +504,121 @@ window.AppStorage = {
             });
         }
 
-        let saveTimeout;
         function saveInputs() {
             if (AppStorage.getItem('autosaveEnabled') === 'false') return;
 
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                const inputsData = {};
-                document.querySelectorAll('.cash-input').forEach(input => {
-                    const value = input.getAttribute('data-value');
-                    inputsData[value] = input.value;
-                });
-                const vCash = document.getElementById('vodafone-cash').value;
-                const iPay = document.getElementById('instapay').value;
-                inputsData['vodafone'] = vCash;
-                inputsData['instapay'] = iPay;
-                AppStorage.setItem('cashCalculatorInputs', JSON.stringify(inputsData));
+            const inputsData = {};
+            document.querySelectorAll('.cash-input').forEach(input => {
+                const value = input.getAttribute('data-value');
+                inputsData[value] = input.value;
+            });
+            const vCash = document.getElementById('vodafone-cash')?.value || '';
+            const iPay = document.getElementById('instapay')?.value || '';
+            inputsData['vodafone'] = vCash;
+            inputsData['instapay'] = iPay;
+            
+            // حفظ فوري في نفس اللحظة بدون أي تأخير 0ms
+            AppStorage.setItem('cashCalculatorInputs', JSON.stringify(inputsData));
 
-                // إظهار مؤشر الحفظ التلقائي
-                const indicator = document.getElementById('autosave-indicator');
-                if (indicator) {
-                    indicator.style.display = 'block';
-                    setTimeout(() => { indicator.style.display = 'none'; }, 2000);
-                }
-            }, 1000);
+            // إظهار مؤشر الحفظ التلقائي
+            const indicator = document.getElementById('autosave-indicator');
+            if (indicator) {
+                indicator.style.display = 'block';
+                clearTimeout(window.indicatorTimer);
+                window.indicatorTimer = setTimeout(() => { indicator.style.display = 'none'; }, 1500);
+            }
         }
+
+        // --- ⚡ 1. وظائف الرزم السريعة وتصفير الصف الفردي (Bundles & Row Clear) ⚡ ---
+        window.addBundleToRow = function (btn, countToAdd = 100) {
+            const row = btn.closest('.note-row');
+            const input = row.querySelector('.cash-input');
+            if (row.classList.contains('locked-row')) {
+                playSound('error');
+                return;
+            }
+            const current = parseInt(input.value || 0);
+            input.value = current + countToAdd;
+            calculateTotal();
+            playSound('cash');
+            
+            // أنيميشن وميض سريع للرقم
+            input.classList.add('pulse-text');
+            setTimeout(() => input.classList.remove('pulse-text'), 300);
+        };
+
+        window.clearSingleRow = function (btn) {
+            const row = btn.closest('.note-row');
+            const input = row.querySelector('.cash-input');
+            if (row.classList.contains('locked-row')) {
+                playSound('error');
+                return;
+            }
+            if (input.value && parseInt(input.value) > 0) {
+                input.value = '';
+                calculateTotal();
+                playSound('trash');
+            }
+        };
+
+        // --- 📱 2. منطق لوحة الأرقام السريعة العائمة للهواتف (Quick Numpad Engine) 📱 ---
+        let activeNumpadInput = null;
+
+        window.openQuickNumpadFor = function (currencyInfoElem) {
+            const row = currencyInfoElem.closest('.note-row');
+            const input = row.querySelector('.cash-input');
+            if (row.classList.contains('locked-row')) {
+                playSound('error');
+                return;
+            }
+
+            activeNumpadInput = input;
+            const val = input.getAttribute('data-value');
+            const count = input.value || '0';
+
+            document.getElementById('numpad-currency-name').textContent = `فئة ${val} ${currencySymbol}`;
+            document.getElementById('numpad-current-val').textContent = `${count} ورقة`;
+
+            const overlay = document.getElementById('quick-numpad-overlay');
+            if (overlay) overlay.style.display = 'flex';
+            playSound('tick');
+        };
+
+        window.closeQuickNumpad = function () {
+            const overlay = document.getElementById('quick-numpad-overlay');
+            if (overlay) overlay.style.display = 'none';
+            activeNumpadInput = null;
+            playSound('tick');
+        };
+
+        window.numpadPress = function (key) {
+            if (!activeNumpadInput) return;
+            let currentVal = activeNumpadInput.value ? activeNumpadInput.value.toString() : '';
+
+            if (key === 'C') {
+                currentVal = '';
+            } else if (key === 'DEL') {
+                currentVal = currentVal.slice(0, -1);
+            } else {
+                if (currentVal === '0') currentVal = '';
+                if (currentVal.length < 8) currentVal += key;
+            }
+
+            activeNumpadInput.value = currentVal;
+            document.getElementById('numpad-current-val').textContent = `${currentVal || '0'} ورقة`;
+            calculateTotal();
+            playSound('tick');
+        };
+
+        window.numpadAddQuick = function (amount) {
+            if (!activeNumpadInput) return;
+            let currentNum = parseInt(activeNumpadInput.value || 0);
+            currentNum += amount;
+            activeNumpadInput.value = currentNum;
+            document.getElementById('numpad-current-val').textContent = `${currentNum} ورقة`;
+            calculateTotal();
+            playSound('cash');
+        };
 
         window.toggleLock = function (btn) {
             const row = btn.closest('.note-row');
@@ -503,7 +658,10 @@ window.AppStorage = {
         function calculateTotal() {
             let physicalTotal = 0;
             let totalPapers = 0;
-            document.querySelectorAll('.cash-input').forEach(input => {
+            const inputs = document.querySelectorAll('.cash-input');
+            
+            for (let i = 0; i < inputs.length; i++) {
+                const input = inputs[i];
                 const value = parseFloat(input.getAttribute('data-value'));
                 const count = parseInt(input.value) || 0;
                 const rowTotal = value * count;
@@ -514,7 +672,7 @@ window.AppStorage = {
                 if (rowTotalElement) {
                     rowTotalElement.textContent = rowTotal.toFixed(2);
                 }
-            });
+            }
 
             // إضافة الخزينة الرقمية
             const vodafone = parseFloat(document.getElementById('vodafone-cash').value) || 0;
@@ -527,11 +685,6 @@ window.AppStorage = {
             if (totalPapersElement) {
                 totalPapersElement.textContent = totalPapers;
             }
-
-            // تأثير بصري عند التحديث
-            totalAmountElement.classList.remove('pulse-text');
-            void totalAmountElement.offsetWidth; // Trigger reflow
-            totalAmountElement.classList.add('pulse-text');
 
             // تحديث تفاصيل التقسيم (نقدي vs رقمي)
             const breakdownEl = document.getElementById('total-breakdown');
@@ -555,11 +708,6 @@ window.AppStorage = {
 
             // حفظ المدخلات تلقائيًا
             saveInputs();
-
-            // تشغيل صوت عند تغيير الإجمالي
-            if (grandTotal > 0) {
-                playSound('tick');
-            }
 
             return grandTotal;
         }
@@ -874,72 +1022,74 @@ window.AppStorage = {
             if (recCurrencyCode === 'usd') recordDenominations = [100, 50, 20, 10, 5, 1, 0.5, 0.25, 0.1, 0.05];
             else if (recCurrencyCode === 'eur') recordDenominations = [500, 200, 100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01];
 
-            // بناء واجهة التعديل بتصميم بطاقة بيضاء عالية التباين (Ultra Clean Light UI)
-            let editHTML = '<div style="max-height: 60vh; overflow-y: auto; padding: 4px; direction: rtl; text-align: right; color: #0F172A;">';
+            // بناء واجهة التعديل بتصميم متجاوب 100% مع شاشات الهواتف والأندرويد
+            let editHTML = '<div class="edit-record-modal-body">';
 
             // قسم الخزينة الرقمية
             editHTML += `
-                <div style="background: #F8FAFC; padding: 12px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #E2E8F0;">
-                    <h4 style="margin: 0 0 8px 0; color: #5B21B6; text-align: center; font-size: 0.95em;"><i class="fas fa-wallet"></i> الخزينة الرقمية</h4>
+                <div class="edit-section-card">
+                    <div class="edit-section-header"><i class="fas fa-wallet"></i> الخزينة الرقمية</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <div>
-                            <label style="font-size: 0.85em; color: #DC2626; display: block; margin-bottom: 4px; font-weight: bold;">فودافون كاش</label>
-                            <input type="number" id="edit-vodafone" value="${record.vodafone || 0}" oninput="updateEditTotal()" style="font-size: 1em; padding: 8px; width: 100%; box-sizing: border-box; background: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; border-radius: 10px; font-weight: bold; text-align: center;">
+                            <label style="font-size: 0.8em; color: #FF4D4D; display: block; margin-bottom: 4px; font-weight: 800;">فودافون كاش</label>
+                            <input type="number" id="edit-vodafone" class="edit-val-input" value="${record.vodafone || 0}" oninput="updateEditTotal()">
                         </div>
                         <div>
-                            <label style="font-size: 0.85em; color: #6D28D9; display: block; margin-bottom: 4px; font-weight: bold;">إنستا باي</label>
-                            <input type="number" id="edit-instapay" value="${record.instapay || 0}" oninput="updateEditTotal()" style="font-size: 1em; padding: 8px; width: 100%; box-sizing: border-box; background: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; border-radius: 10px; font-weight: bold; text-align: center;">
+                            <label style="font-size: 0.8em; color: #A855F7; display: block; margin-bottom: 4px; font-weight: 800;">إنستا باي</label>
+                            <input type="number" id="edit-instapay" class="edit-val-input" value="${record.instapay || 0}" oninput="updateEditTotal()">
                         </div>
                     </div>
                 </div>
             `;
 
-            // قسم الفئات النقدية (صفوف مصفوفة في سطر واحد بدون انكسار)
-            editHTML += '<div id="edit-denominations-list">';
+            // قسم الفئات النقدية (صفوف متناسقة 100% داخل الإطار وبدون أي بروز)
+            editHTML += '<div class="edit-section-card" style="margin-bottom: 10px;">';
+            editHTML += '<div class="edit-section-header"><i class="fas fa-money-bill-wave"></i> فئات النقدية</div>';
+            editHTML += '<div id="edit-denominations-list" style="display: flex; flex-direction: column; gap: 6px;">';
             recordDenominations.forEach(value => {
                 const count = record.details[value.toString()] || 0;
                 const rowTotal = (value * count).toFixed(2);
 
                 editHTML += `
-                    <div class="edit-row">
-                        <div style="display: flex; align-items: center; gap: 4px; min-width: 70px; white-space: nowrap;">
-                            <span style="font-size: 1.1em;">${icons[value] || '💰'}</span>
-                            <span style="font-weight: 800; font-size: 0.9em; color: #0F172A;">${value} ج</span>
+                    <div class="edit-denomination-row">
+                        <div class="edit-denom-badge">
+                            <span class="denom-icon">${icons[value] || '💰'}</span>
+                            <span class="denom-val">${value}</span>
                         </div>
                         
-                        <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
-                            <button type="button" onclick="adjustEditValue('${value}', 1)" style="width: 32px; height: 32px; border-radius: 10px; border: none; background: #10B981; color: white; cursor: pointer; font-size: 1.1em; font-weight: bold; display: flex; align-items: center; justify-content: center;">+</button>
-                            <input type="number" id="edit-input-${value}" data-value="${value}" value="${count}" oninput="updateEditTotal()">
-                            <button type="button" onclick="adjustEditValue('${value}', -1)" style="width: 32px; height: 32px; border-radius: 10px; border: none; background: #EF4444; color: white; cursor: pointer; font-size: 1.1em; font-weight: bold; display: flex; align-items: center; justify-content: center;">-</button>
+                        <div class="edit-controls-box">
+                            <button type="button" class="edit-btn-step plus" onclick="adjustEditValue('${value}', 1)">+</button>
+                            <input type="number" class="edit-count-field" id="edit-input-${value}" data-value="${value}" value="${count}" oninput="updateEditTotal()" inputmode="numeric">
+                            <button type="button" class="edit-btn-step minus" onclick="adjustEditValue('${value}', -1)">−</button>
                         </div>
                         
-                        <div style="min-width: 60px; text-align: left; font-weight: 800; color: #6D28D9; font-size: 0.9em; white-space: nowrap;">
+                        <div class="edit-denom-total">
                             <span id="edit-row-total-${value}">${rowTotal}</span>
                         </div>
                     </div>
                 `;
             });
-            editHTML += '</div>';
+            editHTML += '</div></div>';
 
-            // بطاقة عرض الإجمالي
+            // بطاقة عرض الإجمالي وعدد الأوراق
             editHTML += `
-                <div onclick="showEditDetailsSummary()" style="text-align: center; margin-top: 12px; padding: 12px; background: #F5F3FF; border-radius: 16px; border: 1.5px solid #8B5CF6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                        <button type="button" id="reset-edit-btn" onclick="event.stopPropagation(); resetEditValues();" style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 0.9em; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" title="استعادة القيم الأصلية (تراجع)"><i class="fas fa-undo"></i></button>
-                        <h3 style="margin: 0; font-size: 1.1em; color: #0F172A;">الإجمالي الجديد: <span id="current-edit-total" style="color: #6D28D9; font-size: 1.25em; font-weight: 900;">${record.total.toFixed(2)}</span></h3>
+                <div class="edit-summary-card">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <span style="font-size: 0.95em; font-weight: 800; color: var(--text-color);">الإجمالي الجديد:</span>
+                        <span id="current-edit-total" style="color: var(--primary-color); font-size: 1.35em; font-weight: 950;">${record.total.toFixed(2)}</span>
                     </div>
-                    <div style="font-size: 0.9em; color: #4C1D95; font-weight: 800;">
-                        📄 عدد الأوراق الجديد: <span id="current-edit-papers">${record.totalPapers || 0}</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; font-size: 0.85em; color: var(--text-muted); font-weight: 700; margin-top: 4px;">
+                        <span>📄 عدد الأوراق: <b id="current-edit-papers" style="color: var(--text-color);">${record.totalPapers || 0}</b></span>
+                        <button type="button" id="reset-edit-btn" onclick="resetEditValues();" class="edit-reset-action" title="استعادة القيم الأصلية"><i class="fas fa-undo"></i> تراجع للأصل</button>
                     </div>
-                    <p style="font-size: 0.75em; color: #6B7280; margin: 0;">(اضغط للمعاينة التفصيلية)</p>
                 </div>
             `;
 
-            // الملاحظة
+            // حقل الملاحظة
             editHTML += `
-                <div style="margin-top: 12px;">
-                    <label style="display: block; margin-bottom: 4px; font-weight: bold; font-size: 0.9em; color: #0F172A;">ملاحظة:</label>
-                    <textarea id="edit-note" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1; background: #F8FAFC; color: #0F172A; font-family: inherit; font-size: 0.9em; box-sizing: border-box;" rows="2">${record.note || ''}</textarea>
+                <div style="margin-top: 8px;">
+                    <label style="display: block; margin-bottom: 4px; font-weight: 800; font-size: 0.85em; color: var(--text-color);">ملاحظة على السجل:</label>
+                    <textarea id="edit-note" class="edit-note-textarea" rows="2" placeholder="أضف ملاحظة (اختياري)...">${record.note || ''}</textarea>
                 </div>
             </div>`;
 
@@ -1006,12 +1156,15 @@ window.AppStorage = {
                 html: editHTML,
                 focusConfirm: false,
                 showCancelButton: true,
-                confirmButtonText: 'حفظ التعديلات',
+                confirmButtonText: 'حفظ التعديلات ✅',
                 cancelButtonText: 'إلغاء',
-                confirmButtonColor: '#8B5CF6',
-                background: '#FFFFFF',
-                color: '#0F172A',
-                customClass: { popup: 'edit-modal-white-popup' },
+                confirmButtonColor: 'var(--primary-color)',
+                cancelButtonColor: '#6c757d',
+                background: 'var(--card-background)',
+                color: 'var(--text-color)',
+                width: '95%',
+                maxWidth: '480px',
+                customClass: { popup: 'edit-modal-custom-popup' },
                 preConfirm: () => {
                     const newDetails = {};
                     let newTotal = 0;
@@ -1463,7 +1616,12 @@ window.AppStorage = {
                 Swal.fire({ icon: 'success', title: 'تم التحديث', text: `سعر ${currency} الحالي: ${rate} جنيه`, timer: 1500, showConfirmButton: false });
             } catch (error) {
                 console.error(error);
-                Swal.fire('خطأ', 'تعذر جلب السعر تلقائياً. تأكد من الاتصال بالإنترنت.', 'error');
+                const cachedRate = AppStorage.getItem('exchangeRate');
+                if (cachedRate) {
+                    Swal.fire({ title: 'وضع أوفلاين 📡', text: `أنت غير متصل بالإنترنت. تم استخدام آخر سعر محفوظ: ${cachedRate} جنيه`, icon: 'info', background: 'var(--card-background)', color: 'var(--text-color)' });
+                } else {
+                    Swal.fire({ title: 'وضع أوفلاين 📡', text: 'لا يوجد اتصال بالإنترنت. يمكنك كتابة سعر الصرف يدوياً في الخانة.', icon: 'info', background: 'var(--card-background)', color: 'var(--text-color)' });
+                }
             } finally {
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
@@ -1488,18 +1646,65 @@ window.AppStorage = {
         });
 
         document.getElementById('set-password-btn').addEventListener('click', () => {
-            const password = document.getElementById('password-input').value;
+            const password = document.getElementById('password-input').value.trim();
             if (password) {
                 AppStorage.setItem('appPassword', password);
-                Swal.fire('تم!', 'تم تعيين كلمة المرور.', 'success');
+                AppStorage.setItem('passwordEnabled', 'true');
+                if (document.getElementById('enable-password')) {
+                    document.getElementById('enable-password').checked = true;
+                }
+                playSound('success');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم تعيين كلمة المرور بنجاح ✅',
+                    text: 'تم تفعيل حماية التطبيق بكلمة المرور.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: 'var(--card-background)',
+                    color: 'var(--text-color)'
+                });
             } else {
-                Swal.fire('خطأ', 'الرجاء إدخال كلمة مرور.', 'error');
+                playSound('error');
+                Swal.fire('خطأ', 'الرجاء كتابة كلمة مرور أولاً!', 'warning');
             }
         });
 
         document.getElementById('enable-password').addEventListener('change', (e) => {
-            AppStorage.setItem('passwordEnabled', e.target.checked);
+            const isChecked = e.target.checked;
+            const currentPassword = AppStorage.getItem('appPassword');
+            if (isChecked && !currentPassword) {
+                e.target.checked = false;
+                AppStorage.setItem('passwordEnabled', 'false');
+                playSound('error');
+                Swal.fire('تنبيه', 'يرجى كتابة كلمة المرور والضغط على "تعيين" أولاً لتفعيل الحماية.', 'info');
+                document.getElementById('password-input').focus();
+            } else {
+                AppStorage.setItem('passwordEnabled', isChecked ? 'true' : 'false');
+                playSound('tick');
+            }
         });
+
+        if (document.getElementById('lock-on-hide')) {
+            document.getElementById('lock-on-hide').addEventListener('change', (e) => {
+                AppStorage.setItem('lockOnHide', e.target.checked ? 'true' : 'false');
+                playSound('tick');
+            });
+        }
+
+        if (document.getElementById('auto-lock-timer')) {
+            document.getElementById('auto-lock-timer').addEventListener('change', (e) => {
+                AppStorage.setItem('autoLockTimer', e.target.value);
+                resetIdleTimer();
+                playSound('tick');
+            });
+        }
+
+        if (document.getElementById('autosave-toggle')) {
+            document.getElementById('autosave-toggle').addEventListener('change', (e) => {
+                AppStorage.setItem('autosaveEnabled', e.target.checked ? 'true' : 'false');
+                if (e.target.checked) playSound('success');
+            });
+        }
 
         function selectColorTheme(theme) {
             changeThemeColor(theme);
@@ -1676,22 +1881,22 @@ window.AppStorage = {
                         `);
                         break;
                     case 'red':
-                        root.style.setProperty('--primary-color', '#EF4444');
-                        root.style.setProperty('--secondary-color', '#F87171');
-                        root.style.setProperty('--accent-color', '#FCA5A5');
-                        root.style.setProperty('--gold-primary', '#EF4444');
-                        root.style.setProperty('--gold-light', '#FCA5A5');
-                        root.style.setProperty('--gold-dark', '#991B1B');
-                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #991B1B 0%, #EF4444 50%, #FCA5A5 100%)');
-                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #7F1D1D, #F87171, #B91C1C, #FECACA, #EF4444)');
-                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #991B1B, #EF4444, #991B1B)');
-                        root.style.setProperty('--gold-glow', '0 0 25px rgba(239, 68, 68, 0.3), 0 0 50px rgba(239, 68, 68, 0.1)');
-                        root.style.setProperty('--gold-glow-strong', '0 0 35px rgba(239, 68, 68, 0.5), 0 0 70px rgba(239, 68, 68, 0.2)');
-                        root.style.setProperty('--glass-border', 'rgba(239, 68, 68, 0.25)');
-                        root.style.setProperty('--border-color', 'rgba(239, 68, 68, 0.2)');
+                        root.style.setProperty('--primary-color', '#FF334B');
+                        root.style.setProperty('--secondary-color', '#FF6B7A');
+                        root.style.setProperty('--accent-color', '#FFA3AC');
+                        root.style.setProperty('--gold-primary', '#FF334B');
+                        root.style.setProperty('--gold-light', '#FFA3AC');
+                        root.style.setProperty('--gold-dark', '#B31428');
+                        root.style.setProperty('--gold-gradient', 'linear-gradient(135deg, #B31428 0%, #FF334B 50%, #FF8591 100%)');
+                        root.style.setProperty('--gold-gradient-metallic', 'linear-gradient(45deg, #8A0E1E, #FF6B7A, #FF334B, #FFCCD1, #FF334B)');
+                        root.style.setProperty('--gold-gradient-simple', 'linear-gradient(135deg, #B31428 0%, #FF334B 50%, #B31428 100%)');
+                        root.style.setProperty('--gold-glow', '0 0 25px rgba(255, 51, 75, 0.35), 0 0 50px rgba(255, 51, 75, 0.15)');
+                        root.style.setProperty('--gold-glow-strong', '0 0 35px rgba(255, 51, 75, 0.55), 0 0 70px rgba(255, 51, 75, 0.25)');
+                        root.style.setProperty('--glass-border', 'rgba(255, 51, 75, 0.28)');
+                        root.style.setProperty('--border-color', 'rgba(255, 51, 75, 0.22)');
                         root.style.setProperty('--body-bg-image', `
-                            radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.12) 0%, transparent 50%),
-                            radial-gradient(circle at 0% 100%, rgba(153, 27, 27, 0.06) 0%, transparent 40%)
+                            radial-gradient(circle at 50% 0%, rgba(255, 51, 75, 0.14) 0%, transparent 50%),
+                            radial-gradient(circle at 0% 100%, rgba(179, 20, 40, 0.08) 0%, transparent 40%)
                         `);
                         break;
                 }
@@ -1786,7 +1991,7 @@ window.AppStorage = {
             const dateStamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const filename = `cash-backup-${userName}-${dateStamp}.json`;
 
-            // تنزيل كملف JSON
+            // تنزيل كملف JSON مباشر
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -1795,8 +2000,16 @@ window.AppStorage = {
             link.click();
             URL.revokeObjectURL(url);
 
-            // إظهار نفاذة "جاري حفظ النسخة الاحتياطية" الاحترافية المطابقة للصورة
-            triggerBackupModal(false);
+            Swal.fire({
+                icon: 'success',
+                title: 'تم تصدير النسخة الاحتياطية بنجاح ✅',
+                text: `تم حفظ الملف: ${filename}`,
+                timer: 2500,
+                showConfirmButton: false,
+                background: 'var(--card-background)',
+                color: 'var(--text-color)'
+            });
+            playSound('success');
         });
 
         // ====================================================
@@ -1995,13 +2208,13 @@ window.AppStorage = {
         });
 
 
-        // أزرار الإحصائيات
-        document.getElementById('stats-today-btn').addEventListener('click', () => { updateStats('today'); renderChart('today'); });
-        document.getElementById('stats-week-btn').addEventListener('click', () => { updateStats('week'); renderChart('week'); });
-        document.getElementById('stats-month-btn').addEventListener('click', () => { updateStats('month'); renderChart('month'); });
+        // أزرار الإحصائيات بأمان
+        document.getElementById('stats-today-btn')?.addEventListener('click', () => { updateStats('today'); renderChart('today'); });
+        document.getElementById('stats-week-btn')?.addEventListener('click', () => { updateStats('week'); renderChart('week'); });
+        document.getElementById('stats-month-btn')?.addEventListener('click', () => { updateStats('month'); renderChart('month'); });
 
         // تقرير واتساب/تيليغرام
-        document.getElementById('pdf-export-btn').addEventListener('click', () => {
+        document.getElementById('pdf-export-btn')?.addEventListener('click', () => {
             Swal.fire({
                 title: 'إرسال التقرير',
                 text: 'اختر طريقة الإرسال',
@@ -2022,7 +2235,7 @@ window.AppStorage = {
         });
 
         // لقطة الشاشة - تنزيل أو مشاركة
-        document.getElementById('screenshot-btn').addEventListener('click', function () {
+        document.getElementById('screenshot-btn')?.addEventListener('click', function () {
             Swal.fire({
                 title: 'لقطة الشاشة',
                 text: 'ماذا تريد أن تفعل بالصورة?',
@@ -2297,7 +2510,7 @@ window.AppStorage = {
             document.addEventListener(evt, resetIdleTimer, true)
         );
 
-        function loadTheme() {
+        function loadSettings() {
             const savedTheme = AppStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
 
@@ -2305,68 +2518,71 @@ window.AppStorage = {
             if (document.querySelector('#mode-toggle-btn i')) document.querySelector('#mode-toggle-btn i').className = iconClass;
             if (document.querySelector('#header-mode-toggle i')) document.querySelector('#header-mode-toggle i').className = iconClass;
 
-            const savedColorTheme = AppStorage.getItem('colorTheme') || 'purple';
+            const savedColorTheme = AppStorage.getItem('colorTheme') || 'red';
             changeThemeColor(savedColorTheme);
 
             // تمييز اللون المختار في الإعدادات
             document.querySelectorAll('.color-circle').forEach(el => {
-                if (el.getAttribute('onclick').includes(`'${savedColorTheme}'`)) {
+                if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${savedColorTheme}'`)) {
                     el.classList.add('active');
                 }
             });
 
             const savedCurrency = AppStorage.getItem('selectedCurrency') || 'egp';
-            document.getElementById('currency-select').value = savedCurrency;
+            if (document.getElementById('currency-select')) document.getElementById('currency-select').value = savedCurrency;
             updateCurrency(savedCurrency);
 
-            document.getElementById('exchange-rate').value = AppStorage.getItem('exchangeRate') || '';
-            document.getElementById('system-total-input').value = AppStorage.getItem('systemTotal') || '';
+            if (document.getElementById('exchange-rate')) document.getElementById('exchange-rate').value = AppStorage.getItem('exchangeRate') || '';
+            if (document.getElementById('system-total-input')) document.getElementById('system-total-input').value = AppStorage.getItem('systemTotal') || '';
 
             const savedLanguage = AppStorage.getItem('selectedLanguage') || 'ar';
-            document.getElementById('language-select').value = savedLanguage;
+            if (document.getElementById('language-select')) document.getElementById('language-select').value = savedLanguage;
             updateLanguage(savedLanguage);
 
             const soundEnabled = AppStorage.getItem('soundEnabled') !== 'false';
             if (document.getElementById('sound-toggle')) document.getElementById('sound-toggle').checked = soundEnabled;
 
-            // استعادة إعدادات إخفاء العملات
+            // 1. استعادة إعدادات إخفاء العملات وتثبيت الـ Checkbox
             if (document.getElementById('hide-coin-1')) {
                 document.getElementById('hide-coin-1').checked = AppStorage.getItem('hide_coin_1') === 'true';
-                document.getElementById('hide-coin-1').addEventListener('change', (e) => {
-                    AppStorage.setItem('hide_coin_1', e.target.checked.toString());
-                    createUI();
-                    loadInputs();
-                    calculateTotal();
-                });
             }
             if (document.getElementById('hide-coin-05')) {
                 document.getElementById('hide-coin-05').checked = AppStorage.getItem('hide_coin_05') === 'true';
-                document.getElementById('hide-coin-05').addEventListener('change', (e) => {
-                    AppStorage.setItem('hide_coin_05', e.target.checked.toString());
-                    createUI();
-                    loadInputs();
-                    calculateTotal();
-                });
             }
             if (document.getElementById('hide-coin-025')) {
                 document.getElementById('hide-coin-025').checked = AppStorage.getItem('hide_coin_025') === 'true';
-                document.getElementById('hide-coin-025').addEventListener('change', (e) => {
-                    AppStorage.setItem('hide_coin_025', e.target.checked.toString());
-                    createUI();
-                    loadInputs();
-                    calculateTotal();
-                });
             }
 
+            // 2. استعادة إعدادات الأمان وكلمة المرور
+            const savedPassword = AppStorage.getItem('appPassword') || '';
+            if (document.getElementById('password-input')) {
+                document.getElementById('password-input').value = savedPassword;
+            }
+            if (document.getElementById('enable-password')) {
+                document.getElementById('enable-password').checked = AppStorage.getItem('passwordEnabled') === 'true';
+            }
+            if (document.getElementById('lock-on-hide')) {
+                document.getElementById('lock-on-hide').checked = AppStorage.getItem('lockOnHide') === 'true';
+            }
+            if (document.getElementById('auto-lock-timer')) {
+                document.getElementById('auto-lock-timer').value = AppStorage.getItem('autoLockTimer') || '0';
+            }
+
+            // 3. الحفظ التلقائي الفوري
             const autosaveEnabled = AppStorage.getItem('autosaveEnabled') !== 'false';
-            if (document.getElementById('autosave-toggle')) {
-                document.getElementById('autosave-toggle').checked = autosaveEnabled;
-                document.getElementById('autosave-toggle').addEventListener('change', (e) => {
-                    AppStorage.setItem('autosaveEnabled', e.target.checked);
-                    if (e.target.checked) playSound('success');
-                });
+            const autosaveEl = document.getElementById('autosave-toggle');
+            if (autosaveEl) {
+                autosaveEl.checked = autosaveEnabled;
+                autosaveEl.onchange = (e) => {
+                    AppStorage.setItem('autosaveEnabled', e.target.checked.toString());
+                    if (e.target.checked) {
+                        saveInputs();
+                        playSound('success');
+                    }
+                };
             }
         }
+        function loadTheme() { loadSettings(); }
 
         async function checkPassword() {
             const enabled = AppStorage.getItem('passwordEnabled') === 'true';
@@ -2515,25 +2731,38 @@ window.AppStorage = {
         }
 
         function updateWelcomeMessage() {
-            const name = AppStorage.getItem('userName') || '';
-            const avatar = AppStorage.getItem('userAvatar') || '👤';
+            const name = AppStorage.getItem('userName') || 'عمرو إيهاب';
+            const role = AppStorage.getItem('userRole') || 'مدير الحسابات';
+            const avatar = AppStorage.getItem('userAvatar') || '👑';
             const avatarImage = AppStorage.getItem('userAvatarImage');
 
-            const avatarHTML = avatarImage
+            const avatarRender = avatarImage
                 ? `<img src="${avatarImage}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`
                 : avatar;
 
-            const welcomeAvatarHTML = avatarImage
-                ? `<img src="${avatarImage}" style="width:1em; height:1em; object-fit:cover; border-radius:50%; vertical-align:middle; display:inline-block;">`
-                : `<span style="font-size:1.2em">${avatar}</span>`;
-
-            if (name) {
-                document.getElementById('welcome-msg').innerHTML = `${welcomeAvatarHTML} مرحباً، ${name} 👋`;
-                document.getElementById('user-name-input').value = name;
+            const welcomeMsgElem = document.getElementById('welcome-msg');
+            if (welcomeMsgElem) {
+                welcomeMsgElem.innerHTML = `
+                    <div class="user-greeting-avatar">${avatarRender}</div>
+                    <div class="user-greeting-info">
+                        <span class="user-greeting-name">مرحباً، ${name} 👋</span>
+                        <span class="user-greeting-role">${role}</span>
+                    </div>
+                `;
+                welcomeMsgElem.onclick = () => {
+                    handleBottomNav('settings', document.querySelectorAll('.nav-item')[2]);
+                    switchTabByName('profile');
+                };
             }
-            document.getElementById('user-phone-input').value = AppStorage.getItem('userPhone') || '';
-            document.getElementById('user-role-input').value = AppStorage.getItem('userRole') || '';
-            document.getElementById('user-email-input').value = AppStorage.getItem('userEmail') || '';
+
+            const nameInput = document.getElementById('user-name-input');
+            if (nameInput) nameInput.value = name;
+            const roleInput = document.getElementById('user-role-input');
+            if (roleInput) roleInput.value = role;
+            const phoneInput = document.getElementById('user-phone-input');
+            if (phoneInput) phoneInput.value = AppStorage.getItem('userPhone') || '';
+            const emailInput = document.getElementById('user-email-input');
+            if (emailInput) emailInput.value = AppStorage.getItem('userEmail') || '';
 
             // تحديث السريال في الواجهة
             const serial = generateDeviceSerial();
@@ -2541,7 +2770,7 @@ window.AppStorage = {
             if (serialEl) serialEl.value = serial;
 
             const currentAvatarEl = document.getElementById('current-avatar');
-            if (currentAvatarEl) currentAvatarEl.innerHTML = avatarHTML;
+            if (currentAvatarEl) currentAvatarEl.innerHTML = avatarRender;
 
             const joinDateEl = document.getElementById('join-date-display');
             if (joinDateEl) joinDateEl.textContent = AppStorage.getItem('joinDate') || new Date().toLocaleDateString('ar-EG');
@@ -2572,7 +2801,74 @@ window.AppStorage = {
             document.getElementById('avatar-upload-input').click();
         }
 
-        document.getElementById('avatar-upload-input').addEventListener('change', function (event) {
+        // ربط حفظ بيانات الملف الشخصي والحساب التلقائي والفوري
+        document.addEventListener('DOMContentLoaded', () => {
+            const nameInp = document.getElementById('user-name-input');
+            const roleInp = document.getElementById('user-role-input');
+            const phoneInp = document.getElementById('user-phone-input');
+            const emailInp = document.getElementById('user-email-input');
+            const saveBtn = document.getElementById('save-account-btn');
+
+            const saveProfileData = () => {
+                if (nameInp) AppStorage.setItem('userName', nameInp.value);
+                if (roleInp) AppStorage.setItem('userRole', roleInp.value);
+                if (phoneInp) AppStorage.setItem('userPhone', phoneInp.value);
+                if (emailInp) AppStorage.setItem('userEmail', emailInp.value);
+                updateWelcomeMessage();
+            };
+
+            [nameInp, roleInp, phoneInp, emailInp].forEach(inp => {
+                if (inp) {
+                    inp.addEventListener('input', saveProfileData);
+                    inp.addEventListener('change', saveProfileData);
+                }
+            });
+
+            if (saveBtn) {
+                saveBtn.addEventListener('click', () => {
+                    saveProfileData();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم حفظ البيانات بنجاح ✅',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: 'var(--card-background)',
+                        color: 'var(--text-color)'
+                    });
+                    playSound('success');
+                });
+            }
+        });
+
+        // --- 📢 نظام إعلان المميزات الجديدة والتحديثات (يظهر أول مرة فقط) 📢 ---
+        window.closeAnnouncement = function () {
+            const overlay = document.getElementById('new-features-announcement');
+            if (overlay) overlay.style.display = 'none';
+            AppStorage.setItem('announcement_v5_1_1_seen', 'true');
+            playSound('success');
+        };
+
+        function checkAnnouncement() {
+            const seen = AppStorage.getItem('announcement_v5_1_1_seen');
+            if (!seen) {
+                setTimeout(() => {
+                    const overlay = document.getElementById('new-features-announcement');
+                    if (overlay) overlay.style.display = 'flex';
+                }, 800);
+            }
+        }
+
+        document.getElementById('about-app-btn')?.addEventListener('click', () => {
+            const overlay = document.getElementById('new-features-announcement');
+            if (overlay) overlay.style.display = 'flex';
+        });
+
+        // تشغيل التحقق من الإعلان مع بداية التطبيق
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAnnouncement();
+        });
+
+        document.getElementById('avatar-upload-input')?.addEventListener('change', function (event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -2584,7 +2880,7 @@ window.AppStorage = {
                     document.getElementById('avatar-selector').style.display = 'none';
                     Swal.fire({
                         icon: 'success',
-                        title: 'تم تحديث الصورة السخصية ✅',
+                        title: 'تم تحديث الصورة الشخصية ✅',
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
@@ -2844,70 +3140,85 @@ window.AppStorage = {
 
             const { value: enteredPassword } = await Swal.fire({
                 title: '🔒 حماية كلمة المرور',
-                text: 'الرجاء إدخال كلمة المرور للمتابعة:',
-                input: 'password',
-                inputPlaceholder: 'كلمة المرور',
+                html: `
+                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">الرجاء إدخال كلمة المرور للمتابعة:</p>
+                    <div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto;">
+                        <input id="swal-password-input" type="password" placeholder="أدخل كلمة المرور"
+                            style="width: 100%; padding: 12px 42px 12px 15px; border-radius: 14px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 1.1em; outline: none; box-sizing: border-box; text-align: center;">
+                        <i id="swal-eye-btn" class="fas fa-eye"
+                            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary-color); cursor: pointer; font-size: 1.2em; transition: all 0.2s;"></i>
+                    </div>
+                `,
                 allowOutsideClick: false,
                 allowEscapeKey: false,
-                confirmButtonText: 'دخول',
-                confirmButtonColor: 'var(--primary-color)'
+                confirmButtonText: 'دخول 🔓',
+                confirmButtonColor: 'var(--primary-color)',
+                background: 'var(--card-background)',
+                color: 'var(--text-color)',
+                didOpen: () => {
+                    const passInput = document.getElementById('swal-password-input');
+                    const eyeBtn = document.getElementById('swal-eye-btn');
+                    passInput.focus();
+
+                    eyeBtn.addEventListener('click', () => {
+                        if (passInput.type === 'password') {
+                            passInput.type = 'text';
+                            eyeBtn.classList.remove('fa-eye');
+                            eyeBtn.classList.add('fa-eye-slash');
+                        } else {
+                            passInput.type = 'password';
+                            eyeBtn.classList.remove('fa-eye-slash');
+                            eyeBtn.classList.add('fa-eye');
+                        }
+                    });
+
+                    passInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            Swal.clickConfirm();
+                        }
+                    });
+                },
+                preConfirm: () => {
+                    const entered = document.getElementById('swal-password-input').value;
+                    if (!entered) {
+                        Swal.showValidationMessage('يرجى كتابة كلمة المرور');
+                        return false;
+                    }
+                    return entered;
+                }
             });
 
             if (enteredPassword === appPassword) {
+                playSound('success');
                 return true;
             } else {
-                Swal.fire('خطأ', 'كلمة المرور غير صحيحة!', 'error').then(() => {
+                playSound('error');
+                Swal.fire({
+                    title: 'خطأ',
+                    text: 'كلمة المرور غير صحيحة!',
+                    icon: 'error',
+                    confirmButtonText: 'إعادة المحاولة',
+                    confirmButtonColor: 'var(--primary-color)',
+                    background: 'var(--card-background)',
+                    color: 'var(--text-color)'
+                }).then(() => {
                     location.reload();
                 });
                 return false;
             }
         }
 
-        function checkUserProfile() {
-            const userName = AppStorage.getItem('userName');
-            const userRole = AppStorage.getItem('userRole');
-            const userEmail = AppStorage.getItem('userEmail');
-            const userPhone = AppStorage.getItem('userPhone');
-            const userAvatar = AppStorage.getItem('userAvatar') || '👤';
 
-            const nameInput = document.getElementById('user-name-input');
-            const roleInput = document.getElementById('user-role-input');
-            const emailInput = document.getElementById('user-email-input');
-            const phoneInput = document.getElementById('user-phone-input');
-            const currentAvatar = document.getElementById('current-avatar');
-
-            if (nameInput && userName) nameInput.value = userName;
-            if (roleInput && userRole) roleInput.value = userRole;
-            if (emailInput && userEmail) emailInput.value = userEmail;
-            if (phoneInput && userPhone) phoneInput.value = userPhone;
-            if (currentAvatar) currentAvatar.textContent = userAvatar;
-
-            updateWelcomeMessage();
-        }
-
-        function loadTheme() {
-            const savedThemeMode = AppStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedThemeMode);
-            
-            const savedColorTheme = AppStorage.getItem('colorTheme') || 'purple';
-            changeThemeColor(savedColorTheme);
-
-            const iconClass = savedThemeMode === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            const modeToggleBtn = document.querySelector('#mode-toggle-btn i');
-            if (modeToggleBtn) modeToggleBtn.className = iconClass;
-            const headerModeToggle = document.querySelector('#header-mode-toggle i');
-            if (headerModeToggle) headerModeToggle.className = iconClass;
-        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             await AppStorage.init(); // Initialize IndexedDB Cache
             const accessGranted = await checkPassword();
             if (!accessGranted) return;
 
+            loadSettings(); // تحميل كافة الإعدادات والسمات وحالة إخفاء العملات والأمان
             createUI(); // بناء جدول الفئات النقدية (200، 100، 50...)
             loadInputs(); // تحميل المدخلات المحفوظة
             checkUserProfile(); // التحقق من الملف الشخصي والترحيب عند البدء
-            loadTheme();
             updateMathHistoryUI(); // تحميل سجل الحاسبة
 
             // تعبئة وتزامن تاريخ اليوم تلقائياً مع السجل لمنع أي مساحة فارغة
@@ -2969,15 +3280,15 @@ window.AppStorage = {
             // تفعيل الوضع الافتراضي (الرئيسية)
             handleBottomNav('home', document.querySelector('.nav-item.active'));
 
-            // إعلان المميزات الجديدة (تظهر مرة واحدة فقط)
-            if (!AppStorage.getItem('announcement_v4_2_seen')) {
+            // إعلان المميزات الجديدة والتحديث (تظهر مرة واحدة فقط عند نزول الإصدار 5.0.0)
+            if (!AppStorage.getItem('announcement_v5_0_0_seen')) {
                 setTimeout(() => {
                     const announcement = document.getElementById('new-features-announcement');
                     if (announcement) {
                         announcement.style.display = 'flex';
                         playSound('success');
                     }
-                }, 1000);
+                }, 800);
             }
 
             // Load password settings
@@ -3252,7 +3563,7 @@ window.AppStorage = {
                 announcement.style.transition = '0.3s';
                 setTimeout(() => {
                     announcement.style.display = 'none';
-                    AppStorage.setItem('announcement_v4_2_seen', 'true');
+                    AppStorage.setItem('announcement_v5_0_0_seen', 'true');
                 }, 300);
             }
             playSound('tick');
@@ -3370,11 +3681,12 @@ ${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')}
         }
 
         function switchTabByName(tabName) {
+            const target = tabName === 'profile' ? 'account' : tabName;
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            const selectedTab = document.getElementById('tab-' + tabName);
+            const selectedTab = document.getElementById('tab-' + target);
             if (selectedTab) selectedTab.classList.add('active');
-            const tabBtn = document.querySelector(`.tab-btn[onclick*="'${tabName}'"]`);
+            const tabBtn = document.querySelector(`.tab-btn[onclick*="'${target}'"]`);
             if (tabBtn) tabBtn.classList.add('active');
         }
 
@@ -3414,17 +3726,23 @@ ${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')}
 
         function handleLogout() {
             Swal.fire({
-                title: 'تسجيل الخروج؟',
-                text: "سيتم قفل التطبيق وإعادة تحميل الصفحة.",
+                title: 'تسجيل الخروج والنسخ الاحتياطي؟',
+                text: "سيتم حفظ وتنزيل نسخة احتياطية من جميع بياناتك وقفل التطبيق بأمان.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#dc3545',
+                confirmButtonColor: 'var(--primary-color)',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'نعم، خروج',
-                cancelButtonText: 'إلغاء'
+                confirmButtonText: 'نعم، حفظ وخروج',
+                cancelButtonText: 'إلغاء',
+                background: 'var(--card-background)',
+                color: 'var(--text-color)'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.reload();
+                    // إظهار نافذة النسخ الاحتياطي التلقائي المطابقة للصورة عند الخروج
+                    triggerBackupModal(true);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2200);
                 }
             });
         }
