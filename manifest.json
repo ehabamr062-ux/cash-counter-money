@@ -1,7 +1,7 @@
 {
-    "name": "حاسبة النقد الاحترافية",
-    "short_name": "CashCalc",
-    "description": "حاسبة نقدية احترافية مع سجلات يومية ومحفظة رقمية",
+    "name": "حاسبة النقدية الذكية Pro",
+    "short_name": "حاسبة النقدية",
+    "description": "حاسبة نقدية ذكية مع سجلات يومية وإيصال كاشير ومحفظة رقمية",
     "start_url": "./index.html",
     "display": "standalone",
     "orientation": "portrait",

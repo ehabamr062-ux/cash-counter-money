@@ -1,5 +1,5 @@
 // ===== رقم الإصدار - غيّره مع كل تحديث =====
-const APP_VERSION = '5.1.1'; // PWA Perfect Edit Modal Responsive Fix
+const APP_VERSION = '5.2.1'; // PWA Forced New App Icon Auto-Refresh
 const CACHE_NAME = `cash-calc-v${APP_VERSION}`;
 
 const STATIC_ASSETS = [

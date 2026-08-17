@@ -17,6 +17,14 @@ window.AppStorage = {
 
     async init() {
         this.initSync();
+        // تفعيل حماية التخزين الدائم على هواتف الأندرويد لمنع مسح البيانات نهائياً
+        try {
+            if (navigator.storage && navigator.storage.persist) {
+                const isPersisted = await navigator.storage.persist();
+                console.log(`[Storage] Persistent Storage Mode: ${isPersisted ? 'LOCKED & PERMANENT 🛡️' : 'Standard'}`);
+            }
+        } catch (e) {}
+
         return new Promise((resolve) => {
             try {
                 const request = indexedDB.open('CashCalc_DB', 2);
@@ -424,14 +432,13 @@ window.AppStorage.initSync();
             const icon = icons[value] || '💰';
             const rowTotalId = `total-${value.toString().replace('.', '-')}`;
 
-            // زر الرزم (100 ورقة) للفئات الورقية
-            const isPaperNote = value >= 5;
-            const bundleBtnHTML = isPaperNote 
-                ? `<button class="bundle-quick-btn" onclick="addBundleToRow(this, 100)" title="إضافة 1 رزمة (100 ورقة)">
-                     <span class="bundle-num">100</span>
-                     <span class="bundle-txt">رزمة</span>
-                   </button>`
-                : '';
+            // زر الرزم (100 ورقة/قطعة) لكافة الفئات النقدية والمعدنية
+            const bundleBtnHTML = `
+                <button class="bundle-quick-btn" onclick="addBundleToRow(this, 100)" title="إضافة 100 قطعة / ورقة">
+                    <span class="bundle-num">100</span>
+                    <span class="bundle-txt">رزمة</span>
+                </button>
+            `;
 
             return `
                 <div class="currency-info" onclick="openQuickNumpadFor(this)" title="اضغط لفتح لوحة الأرقام الفورية">
@@ -863,12 +870,16 @@ window.AppStorage.initSync();
             const dateFilterElem = document.getElementById('date-filter-input');
 
             // 1. تعبئة التاريخ تلقائياً بتاريخ اليوم الحالي عند فتح الصفحة إذا لم يحدد المستخدم تاريخاً
-            if (!filterDate || filterDate === 'TODAY') {
-                filterDate = (dateFilterElem && dateFilterElem.value) ? dateFilterElem.value : todayDate;
+            if (filterDate === 'TODAY' || (filterDate === null && !dateFilterElem)) {
+                filterDate = todayDate;
             }
             
-            if (dateFilterElem && filterDate !== 'ALL') {
-                dateFilterElem.value = filterDate;
+            if (dateFilterElem) {
+                if (filterDate === 'ALL') {
+                    dateFilterElem.value = '';
+                } else if (filterDate) {
+                    dateFilterElem.value = filterDate;
+                }
             }
 
             let historyToDisplay = [];
@@ -967,6 +978,7 @@ window.AppStorage.initSync();
                     ${digitalBadges}
                 </div>
                 <div class="history-actions">
+                    <button class="receipt-btn-history" title="إيصال كاشير حراري" style="color: #FFD700;"><i class="fas fa-receipt"></i></button>
                     <button class="view-btn" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
                     <button class="share-btn-history" title="مشاركة عبر واتساب"><i class="fab fa-whatsapp"></i></button>
                     <button class="edit-btn" title="تعديل السجل"><i class="fas fa-edit"></i></button>
@@ -977,6 +989,15 @@ window.AppStorage.initSync();
         }
 
         function attachHistoryEventListeners() {
+            historyList.querySelectorAll('.receipt-btn-history').forEach(btn => btn.addEventListener('click', (e) => {
+                const id = parseInt(e.target.closest('li').dataset.id);
+                let history = [];
+                try { history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]'); } catch (err) {}
+                const record = history.find(r => r.id === id);
+                if (record) {
+                    showThermalReceiptModal(record);
+                }
+            }));
             historyList.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', handleViewDetails));
             historyList.querySelectorAll('.share-btn-history').forEach(btn => btn.addEventListener('click', handleShareRecord));
             historyList.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditRecord));
@@ -1377,8 +1398,12 @@ window.AppStorage.initSync();
 
             const totalPapersInSave = Array.from(document.querySelectorAll('.cash-input')).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
 
+            let currentReceiptCount = parseInt(AppStorage.getItem('lastReceiptCounter') || '0') + 1;
+            AppStorage.setItem('lastReceiptCounter', currentReceiptCount.toString());
+
             const dayData = {
                 id: Date.now(),
+                receiptNumber: `REC-${currentReceiptCount}`,
                 timestamp: timestamp,
                 simpleDate: simpleDate,
                 total: grandTotal,
@@ -1515,39 +1540,39 @@ window.AppStorage.initSync();
         const backBtnSettings = document.getElementById('back-btn-settings');
 
         function showSection(sectionId, title) {
-            document.getElementById('settings-menu').style.display = 'none';
-            document.getElementById('stats-content').style.display = 'none';
-            document.getElementById('about-content').style.display = 'none';
-
-            document.getElementById(sectionId).style.display = 'block';
-            document.getElementById('modal-title').innerHTML = title;
-            backBtnSettings.style.display = 'block';
+            const el = document.getElementById(sectionId);
+            if (el) {
+                document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+                el.classList.add('active');
+                if (title && document.getElementById('modal-title')) {
+                    document.getElementById('modal-title').innerHTML = title;
+                }
+            }
         }
 
         function resetSettingsView() {
-            document.getElementById('settings-menu').style.display = 'block';
-            document.getElementById('stats-content').style.display = 'none';
-            document.getElementById('about-content').style.display = 'none';
-
+            switchTab('general');
             const lang = document.documentElement.lang || 'ar';
-            document.getElementById('modal-title').innerHTML = '<i class="fas fa-cog"></i> ' + translations[lang].settingsTitle;
-            backBtnSettings.style.display = 'none';
+            if (document.getElementById('modal-title')) {
+                document.getElementById('modal-title').innerHTML = '<i class="fas fa-cog"></i> ' + (translations[lang]?.settingsTitle || 'الإعدادات');
+            }
+            if (backBtnSettings) backBtnSettings.style.display = 'none';
         }
 
-        backBtnSettings.addEventListener('click', resetSettingsView);
+        if (backBtnSettings) backBtnSettings.addEventListener('click', resetSettingsView);
 
         const statsBtn = document.getElementById('stats-btn');
         if (statsBtn) {
             statsBtn.addEventListener('click', () => {
-                showSection('stats-content', '<i class="fas fa-chart-bar"></i> الإحصائيات');
-                updateStats('today'); // تحديث الإحصائيات عند الفتح
-                renderChart('today'); // رسم الرسم البياني الافتراضي (اليوم = دائري)
+                switchTab('stats');
+                updateStats('today');
+                renderChart('today');
             });
         }
 
-        // زر "عن التطبيق"
-        document.getElementById('about-app-btn').addEventListener('click', () => {
-            showSection('about-content', '<i class="fas fa-info-circle"></i> عن التطبيق');
+        // زر "حول البرنامج"
+        document.getElementById('about-app-btn')?.addEventListener('click', () => {
+            switchTab('about');
         });
 
         // دالة موحدة لتبديل الوضع وتحديث الأيقونات في المكانين
@@ -1932,11 +1957,9 @@ window.AppStorage.initSync();
         });
 
         document.getElementById('show-all-btn').addEventListener('click', () => {
-            const now = new Date();
-            const todayISO = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-            dateFilterInput.value = todayISO;
+            dateFilterInput.value = '';
             searchInput.value = '';
-            loadHistory(null); // عرض كل العمليات مع الحفاظ على خانة التاريخ مملوءة بتاريخ اليوم
+            loadHistory('ALL'); // عرض كل العمليات بالكامل وتفريغ حقل التاريخ
         });
 
         // إضافة البحث المباشر
@@ -1978,7 +2001,7 @@ window.AppStorage.initSync();
                 settings: {
                     currency: AppStorage.getItem('selectedCurrency') || 'egp',
                     language: AppStorage.getItem('selectedLanguage') || 'ar',
-                    theme: AppStorage.getItem('theme') || 'dark',
+                    theme: AppStorage.getItem('theme') || 'light',
                     exchangeRate: AppStorage.getItem('exchangeRate') || '',
                     soundEnabled: AppStorage.getItem('soundEnabled') || 'true'
                 },
@@ -2034,7 +2057,7 @@ window.AppStorage.initSync();
                 settings: {
                     currency: AppStorage.getItem('selectedCurrency') || 'egp',
                     language: AppStorage.getItem('selectedLanguage') || 'ar',
-                    theme: AppStorage.getItem('theme') || 'dark',
+                    theme: AppStorage.getItem('theme') || 'light',
                     exchangeRate: AppStorage.getItem('exchangeRate') || '',
                     soundEnabled: AppStorage.getItem('soundEnabled') || 'true'
                 },
@@ -2296,6 +2319,247 @@ window.AppStorage.initSync();
             });
         });
 
+        // ==========================================
+        // 🧾 نظام إيصال الكاشير الحراري (Thermal POS Receipt)
+        // ==========================================
+        function showThermalReceiptModal(recordData = null) {
+            let details = {}, grandTotal = 0, vodafone = 0, instapay = 0, entryDate = '', totalPapers = 0;
+            const currencySymbol = AppStorage.getItem('selectedCurrency') === 'usd' ? '$' : (AppStorage.getItem('selectedCurrency') === 'eur' ? '€' : 'ج.م');
+
+            if (recordData) {
+                details = recordData.details || {};
+                grandTotal = recordData.grandTotal || recordData.total || 0;
+                vodafone = recordData.vodafone || 0;
+                instapay = recordData.instapay || 0;
+                entryDate = recordData.date || new Date().toLocaleString('ar-EG');
+                totalPapers = recordData.totalPapers || Object.values(details).reduce((a, b) => a + b, 0);
+            } else {
+                grandTotal = calculateTotal();
+                if (grandTotal <= 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'لا توجد بيانات حالية',
+                        text: 'قم بإدخال عدد الفئات أولاً لتوليد إيصال الكاشير.',
+                        background: 'var(--card-background)',
+                        color: 'var(--text-color)'
+                    });
+                    return;
+                }
+                details = getCalculationDetails();
+                vodafone = parseFloat(document.getElementById('vodafone-cash')?.value) || 0;
+                instapay = parseFloat(document.getElementById('instapay')?.value) || 0;
+                entryDate = (document.getElementById('entry-date')?.value || new Date().toLocaleDateString('ar-EG')) + ' ' + new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                totalPapers = Array.from(document.querySelectorAll('.cash-input')).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
+            }
+
+            const userName = AppStorage.getItem('userName') || 'مسؤول الخزينة';
+            const userRole = AppStorage.getItem('userRole') || 'كاشير';
+            const serial = AppStorage.getItem('deviceSerial') || 'POS-001';
+            
+            // عداد تسلسلي تصاعدي يبدأ من 1 ثم 2 وهكذا
+            let receiptNumCounter = parseInt(AppStorage.getItem('lastReceiptCounter') || '0') + 1;
+            if (!recordData) {
+                AppStorage.setItem('lastReceiptCounter', receiptNumCounter.toString());
+            }
+            const receiptNumber = recordData && recordData.receiptNumber ? recordData.receiptNumber : `REC-${receiptNumCounter}`;
+
+            // توليد صفوف الفئات النقدية
+            let rowsHtml = '';
+            for (const value in details) {
+                const count = details[value];
+                const noteVal = parseFloat(value);
+                const subtotal = (noteVal * count).toFixed(2);
+                rowsHtml += `
+                    <tr>
+                        <td style="text-align: right; font-weight: bold; color: #000;">${noteVal} ${currencySymbol}</td>
+                        <td style="text-align: center; font-weight: bold; color: #000;">${count}</td>
+                        <td style="text-align: left; font-weight: bold; color: #000;">${subtotal}</td>
+                    </tr>
+                `;
+            }
+
+            if (!rowsHtml) {
+                rowsHtml = `<tr><td colspan="3" style="text-align:center; color:#888;">لا توجد فئات نقدية معدودة</td></tr>`;
+            }
+
+            let digitalSection = '';
+            if (vodafone > 0 || instapay > 0) {
+                digitalSection = `
+                    <div style="border-top: 1px dashed #777; margin: 8px 0; padding-top: 6px;">
+                        <div style="font-weight: 800; font-size: 0.85em; margin-bottom: 4px;">📱 الخزينة والمحافظ الرقمية:</div>
+                        ${vodafone > 0 ? `<div class="receipt-row-flex" style="font-size:0.82em;"><span>فودافون كاش:</span><b>${vodafone.toFixed(2)} ${currencySymbol}</b></div>` : ''}
+                        ${instapay > 0 ? `<div class="receipt-row-flex" style="font-size:0.82em;"><span>إنستا باي:</span><b>${instapay.toFixed(2)} ${currencySymbol}</b></div>` : ''}
+                    </div>
+                `;
+            }
+
+            const receiptHtml = `
+                <div id="thermal-print-area" class="receipt-paper-wrapper">
+                    <div class="receipt-header">
+                        <div style="font-size: 1.6em; margin-bottom: 2px;">🏪</div>
+                        <h3>حاسبة النقد الاحترافية</h3>
+                        <p>إيصال جرد وردية وتسليم نقدية</p>
+                    </div>
+
+                    <div class="receipt-meta">
+                        <div class="receipt-row-flex"><span>رقم الإيصال:</span><b>#${receiptNumber}</b></div>
+                        <div class="receipt-row-flex"><span>التاريخ والوقت:</span><b>${entryDate}</b></div>
+                        <div class="receipt-row-flex"><span>الموظف / الكاشير:</span><b>${userName} (${userRole})</b></div>
+                        <div class="receipt-row-flex"><span>معرف الجهاز:</span><b>${serial}</b></div>
+                    </div>
+
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: right;">الفئة</th>
+                                <th style="text-align: center;">العدد</th>
+                                <th style="text-align: left;">المجموع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+
+                    ${digitalSection}
+
+                    <div class="receipt-total-box">
+                        <div class="receipt-row-flex" style="font-size: 0.85em;">
+                            <span>📄 إجمالي عدد الأوراق:</span>
+                            <b>${totalPapers} ورقة</b>
+                        </div>
+                        <div class="receipt-row-flex receipt-grand-total">
+                            <span>الإجمالي النهائي:</span>
+                            <span>${grandTotal.toFixed(2)} ${currencySymbol}</span>
+                        </div>
+                    </div>
+
+                    <div class="receipt-footer">
+                        <p style="margin: 0; font-weight: bold;">*** تم الاعتماد والمطابقة بنجاح ***</p>
+                        <p style="margin: 3px 0 0; font-size: 0.85em; opacity: 0.75;">شكراً لتعاملكم - نظام الكاشير الذكي</p>
+                    </div>
+                </div>
+            `;
+
+            Swal.fire({
+                title: '🧾 إيصال الكاشير الحراري',
+                html: receiptHtml,
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: '<i class="fas fa-print"></i> طباعة (80mm/58mm)',
+                denyButtonText: '<i class="fas fa-image"></i> حفظ كصورة',
+                cancelButtonText: 'إغلاق',
+                confirmButtonColor: '#10B981',
+                denyButtonColor: '#3B82F6',
+                cancelButtonColor: '#64748B',
+                background: 'var(--card-background)',
+                color: 'var(--text-color)',
+                width: '420px',
+                customClass: {
+                    popup: 'receipt-swal-popup'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    printThermalReceiptHtml(receiptHtml);
+                } else if (result.isDenied) {
+                    const printArea = document.getElementById('thermal-print-area');
+                    if (printArea && typeof html2canvas !== 'undefined') {
+                        html2canvas(printArea, { scale: 3, backgroundColor: '#FFFFFF' }).then(canvas => {
+                            const link = document.createElement('a');
+                            link.download = `Receipt_${receiptNumber}.png`;
+                            link.href = canvas.toDataURL('image/png');
+                            link.click();
+                            playSound('success');
+                        });
+                    }
+                }
+            });
+        }
+
+        // دالة طباعة معزولة ومضمونة 100% لطابعات الـ POS بدون صفحات بيضاء
+        function printThermalReceiptHtml(htmlContent) {
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(`
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>طباعة إيصال كاشير</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
+                    <style>
+                        @page {
+                            size: auto;
+                            margin: 0mm;
+                        }
+                        body {
+                            font-family: 'Tajawal', -apple-system, sans-serif;
+                            margin: 0;
+                            padding: 4mm;
+                            background: #FFF;
+                            color: #000;
+                            direction: rtl;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+                        .receipt-paper-wrapper {
+                            width: 100%;
+                            max-width: 78mm;
+                            margin: 0 auto;
+                            padding: 0;
+                            box-shadow: none;
+                            border: none;
+                            letter-spacing: 0 !important;
+                            word-spacing: 0 !important;
+                            color: #000 !important;
+                        }
+                        .receipt-header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+                        .receipt-header h3 { margin: 0; font-size: 17px; font-weight: 950; color: #000; }
+                        .receipt-header p { margin: 3px 0 0; font-size: 13px; font-weight: 900; color: #000 !important; }
+                        .receipt-meta { font-size: 13px; font-weight: 700; line-height: 1.6; margin-bottom: 8px; border-bottom: 1.5px dashed #000; padding-bottom: 6px; color: #000; }
+                        .receipt-row-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; font-size: 13px; color: #000; }
+                        .receipt-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0; color: #000; }
+                        .receipt-table th { border-bottom: 2px solid #000; padding: 5px 2px; text-align: right; font-weight: 950; color: #000; }
+                        .receipt-table td { padding: 5px 2px; border-bottom: 1px dotted #555; color: #000; font-weight: 800; }
+                        .receipt-total-box { border-top: 2px dashed #000; padding-top: 6px; margin-top: 6px; color: #000; }
+                        .receipt-grand-total { font-size: 16px; font-weight: 950; border-top: 1.5px solid #000; padding-top: 5px; margin-top: 5px; color: #000; }
+                        .receipt-footer { text-align: center; border-top: 1.5px dashed #000; padding-top: 8px; margin-top: 10px; font-size: 12px; font-weight: 800; color: #000 !important; }
+                        .receipt-footer p { color: #000 !important; font-weight: 800 !important; }
+                    </style>
+                </head>
+                <body>
+                    ${htmlContent}
+                </body>
+                </html>
+            `);
+            doc.close();
+
+            setTimeout(() => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 2000);
+            }, 300);
+        }
+
+        // ربط أزرار الإيصال
+        document.getElementById('header-receipt-btn')?.addEventListener('click', () => showThermalReceiptModal());
+        document.getElementById('receipt-action-btn')?.addEventListener('click', () => {
+            const modal = document.getElementById('settings-modal');
+            if (modal) modal.style.display = 'none';
+            showThermalReceiptModal();
+        });
+
 
         function updateStats(period = 'today') {
 
@@ -2511,10 +2775,12 @@ window.AppStorage.initSync();
         );
 
         function loadSettings() {
-            const savedTheme = AppStorage.getItem('theme') || 'dark';
+            // فرض الوضع الفاتح دائماً عند بدء التطبيق كخيار إجباري أساسي
+            const savedTheme = 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
+            AppStorage.setItem('theme', 'light');
 
-            const iconClass = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            const iconClass = 'fas fa-moon';
             if (document.querySelector('#mode-toggle-btn i')) document.querySelector('#mode-toggle-btn i').className = iconClass;
             if (document.querySelector('#header-mode-toggle i')) document.querySelector('#header-mode-toggle i').className = iconClass;
 
@@ -2810,10 +3076,10 @@ window.AppStorage.initSync();
             const saveBtn = document.getElementById('save-account-btn');
 
             const saveProfileData = () => {
-                if (nameInp) AppStorage.setItem('userName', nameInp.value);
-                if (roleInp) AppStorage.setItem('userRole', roleInp.value);
-                if (phoneInp) AppStorage.setItem('userPhone', phoneInp.value);
-                if (emailInp) AppStorage.setItem('userEmail', emailInp.value);
+                if (nameInp && nameInp.value.trim()) AppStorage.setItem('userName', nameInp.value.trim());
+                if (roleInp && roleInp.value.trim()) AppStorage.setItem('userRole', roleInp.value.trim());
+                if (phoneInp && phoneInp.value.trim()) AppStorage.setItem('userPhone', phoneInp.value.trim());
+                if (emailInp && emailInp.value.trim()) AppStorage.setItem('userEmail', emailInp.value.trim());
                 updateWelcomeMessage();
             };
 
@@ -2935,6 +3201,8 @@ window.AppStorage.initSync();
                     historyCard.style.display = 'none';
                     settingsModal.style.display = 'none';
                     document.getElementById('math-calc-card').style.display = 'block';
+                    updateMathHistoryUI();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     break;
                 case 'digital':
                     historyCard.style.display = 'none';
@@ -3211,7 +3479,9 @@ window.AppStorage.initSync();
 
 
         document.addEventListener('DOMContentLoaded', async () => {
+            updateWelcomeMessage(); // إظهار بيانات الترحيب فوراً بدون انتظار
             await AppStorage.init(); // Initialize IndexedDB Cache
+            updateWelcomeMessage(); // تحديث بعد اكتمال قاعدة البيانات
             const accessGranted = await checkPassword();
             if (!accessGranted) return;
 
@@ -3280,8 +3550,8 @@ window.AppStorage.initSync();
             // تفعيل الوضع الافتراضي (الرئيسية)
             handleBottomNav('home', document.querySelector('.nav-item.active'));
 
-            // إعلان المميزات الجديدة والتحديث (تظهر مرة واحدة فقط عند نزول الإصدار 5.0.0)
-            if (!AppStorage.getItem('announcement_v5_0_0_seen')) {
+            // إعلان المميزات الجديدة والتحديث (تظهر مرة واحدة فقط عند نزول الإصدار 5.2.1)
+            if (!AppStorage.getItem('announcement_v5_2_1_seen')) {
                 setTimeout(() => {
                     const announcement = document.getElementById('new-features-announcement');
                     if (announcement) {
@@ -3688,6 +3958,9 @@ ${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')}
             if (selectedTab) selectedTab.classList.add('active');
             const tabBtn = document.querySelector(`.tab-btn[onclick*="'${target}'"]`);
             if (tabBtn) tabBtn.classList.add('active');
+            if (target === 'account') {
+                updateWelcomeMessage();
+            }
         }
 
         // 3. مؤشر حالة الاتصال
@@ -3722,6 +3995,10 @@ ${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')}
             // تفعيل الزر المناسب
             const tabBtn = document.querySelector(`.tab-btn[onclick*="'${tabName}'"]`);
             if (tabBtn) tabBtn.classList.add('active');
+
+            if (tabName === 'account' || tabName === 'profile') {
+                updateWelcomeMessage();
+            }
         }
 
         function handleLogout() {
