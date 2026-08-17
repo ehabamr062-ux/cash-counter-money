@@ -3692,71 +3692,88 @@ window.AppStorage.initSync();
         }
 
         // ---------------------------------------------------------
-        // PWA Service Worker و العمل بدون إنترنت
+        // PWA Service Worker ونظام التحديث التلقائي الذكي للإصدارات
         // ---------------------------------------------------------
+        const CURRENT_APP_VERSION = '5.3.0';
+
+        // دالة فحص ومقارنة الإصدارات السحابية
+        async function checkForAppUpdates() {
+            if (!navigator.onLine || !window.location.protocol.startsWith('http')) return;
+            try {
+                const response = await fetch(`./version.json?_t=${Date.now()}`, {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`[UpdateChecker] 🔍 فحص الإصدار: المثبت (${CURRENT_APP_VERSION}) | المنشور (${data.version})`);
+                    if (data && data.version && data.version !== CURRENT_APP_VERSION) {
+                        console.log(`[UpdateChecker] 🚀 تم اكتشاف إصدار جديد (${data.version})! جاري تحديث Service Worker والبيانات فوراً...`);
+                        if ('serviceWorker' in navigator) {
+                            const reg = await navigator.serviceWorker.getRegistration();
+                            if (reg) {
+                                await reg.update();
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.log('[UpdateChecker] تعذر الوصول لملف الإصدار حالياً:', err.message);
+            }
+        }
 
         // تسجيل Service Worker الخارجي (فقط عند التشغيل عبر HTTP/HTTPS)
         if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
                     .then(reg => {
-                        console.log('[App] Service Worker registered:', reg.scope);
+                        console.log(`[PWA v${CURRENT_APP_VERSION}] 📶 Service Worker مسجل بنجاح بنطاق:`, reg.scope);
 
-                        // فرض التحقق من التحديثات كل 5 دقائق
+                        // التحقق المباشر من التحديثات فور تشغيل التطبيق
+                        checkForAppUpdates();
+                        reg.update();
+
+                        // فحص دوري للتحديثات كل 5 دقائق
                         setInterval(() => {
+                            console.log('[PWA] ⏳ فحص دوري للتحديثات الجديدة...');
+                            checkForAppUpdates();
                             reg.update();
-                            console.log('[App] Checking for SW updates...');
                         }, 5 * 60 * 1000);
 
-                        // اكتشاف تحديث جديد وتطبيقه فوراً وتلقائياً
+                        // عند عودة اتصال الإنترنت
+                        window.addEventListener('online', () => {
+                            console.log('[PWA] 🌐 استعادة الاتصال بالإنترنت، فحص التحديثات...');
+                            checkForAppUpdates();
+                            reg.update();
+                        });
+
+                        // اكتشاف تثبيت نسخة جديدة وتفعيلها فوراً
                         reg.addEventListener('updatefound', () => {
                             const newWorker = reg.installing;
+                            console.log(`[PWA v${CURRENT_APP_VERSION}] 📥 جاري تنزيل وتثبيت كود وأيقونات الإصدار الجديد...`);
                             newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // تخطي الانتظار وتطبيق الإصدار الجديد فوراً
-                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                if (newWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        console.log(`[PWA v${CURRENT_APP_VERSION}] ⚡ اكتمل تنزيل التحديث، إرسال أمر التفعيل الفوري SKIP_WAITING...`);
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    } else {
+                                        console.log(`[PWA v${CURRENT_APP_VERSION}] ✅ تم تثبيت التطبيق وتخزين الملفات بالكامل للاستخدام Offline.`);
+                                    }
                                 }
                             });
                         });
                     })
-                    .catch(e => console.log('[App] SW registration failed:', e));
-
-                // استقبال رسالة من SW عند التحديث
-                navigator.serviceWorker.addEventListener('message', event => {
-                    if (event.data && event.data.type === 'SW_UPDATED') {
-                        window.location.reload();
-                    }
-                });
+                    .catch(e => console.log('[PWA] SW registration failed:', e));
 
                 // تحديث تلقائي فوري وسلس عند تفعيل الإصدار الجديد
                 let refreshing = false;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (!refreshing) {
                         refreshing = true;
+                        console.log(`[PWA] 🔄 تم تفعيل الإصدار الجديد بنجاح، جاري إعادة تحميل التطبيق تلقائياً...`);
                         window.location.reload();
                     }
                 });
-            });
-        }
-
-        function showUpdateNotification(version = '') {
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top',
-                showConfirmButton: true,
-                showCancelButton: true,
-                timer: 15000,
-                background: 'var(--card-background)',
-                color: 'var(--text-color)',
-                confirmButtonText: '🔄 تحديث الآن',
-                cancelButtonText: 'لاحقاً',
-                confirmButtonColor: 'var(--primary-color)'
-            });
-            Toast.fire({
-                icon: 'success',
-                title: version ? `✨ إصدار جديد ${version} متاح!` : '✨ إصدار جديد متاح!'
-            }).then(r => {
-                if (r.isConfirmed) window.location.reload(true);
             });
         }
 

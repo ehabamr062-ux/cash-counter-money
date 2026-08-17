@@ -1,25 +1,23 @@
 {
   "appName": "حاسبة النقدية الذكية Pro",
   "shortName": "حاسبة النقدية",
-  "appId": "com.cashcalc.smartpro.v522",
-  "version": "5.2.2",
-  "versionCode": 522,
-  "releaseDate": "2026-08-17",
+  "appId": "com.cashcalc.smartpro",
+  "version": "5.3.0",
+  "versionCode": 530,
+  "releaseDate": "2026-08-18",
   "releaseType": "Official Stable Production",
   "developer": "عمرو إيهاب",
-  "description": "حاسبة نقدية ذكية مع سجلات يومية وإيصال كاشير حراري ومحفظة رقمية وتخزين دائم",
+  "description": "حاسبة نقدية ذكية مع سجلات يومية وإيصال كاشير حراري ومحفظة رقمية وتخزين دائم ونظام تحديث فوري",
   "latestChanges": [
-    "اعتماد الأيقونة المجسمة ثلاثية الأبعاد 3D للآلة الحاسبة الذكية ورزم النقود.",
-    "توليد وطباعة إيصال الكاشير الحراري لطابعات الـ POS بقياس 80mm/58mm بترقيم تسلسلي تصاعدي.",
-    "أزرار الرزم الخضراء الفاخرة (100 رزمة) لكافة الفئات بما فيها فئات الفكة والمعدنية (1، 0.50، 0.25).",
-    "فرض الوضع الفاتح الملكي النظيف افتراضياً عند أول تشغيل.",
-    "محرك التخزين الدائم لحماية قاعدة البيانات من أي مسح مؤقت أو أدوات تنظيف الهاتف.",
-    "نظام التحديث التلقائي الفوري الصامت لكافة المستخدمين.",
-    "سجل وتاريخ الإصدارات التفاعلي الشامل بقوائم منسدلة داخل تبويب حول التطبيق."
+    "ترقية نظام الأيقونات والتخزين المؤقت بالكامل ليعتمد على Versioning ذكي ودقيق.",
+    "توليد وحفظ ملفات الأيقونات بصيغة PNG الأصلية المطابقة لمواصفات PWA عبر كافة المقاسات (72x72 إلى 512x512).",
+    "نظام كشف ومزامنة تلقائي للإصدارات عبر version.json و Service Worker يمنع تماماً بقاء أي ملفات أو أيقونات قديمة.",
+    "تحديث تلقائي فوري وسلس لجميع المستخدمين على Chrome و Edge و Android و Windows دون الحاجة لإعادة التثبيت.",
+    "استراتيجيات كاش احترافية تضمن عمل التطبيق 100% Offline مع سحب التحديثات فور الاتصال بالإنترنت."
   ],
   "compatibility": {
-    "platforms": ["Android (PWA / APK)", "iOS (Safari WebApp)", "Desktop (Chrome / Edge / Firefox)"],
-    "offlineSupport": "100% Offline with Service Worker v5.2.1",
+    "platforms": ["Android (PWA / APK)", "iOS (Safari WebApp)", "Desktop (Chrome / Edge / Windows PWA)"],
+    "offlineSupport": "100% Offline with Service Worker v5.3.0",
     "storageEngine": "IndexedDB + Persistent Storage Engine"
   }
 }

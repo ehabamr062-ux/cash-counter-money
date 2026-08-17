@@ -9,22 +9,29 @@
     <meta name="keywords" content="حاسبة نقود, عد فئات, جنيه مصري, فودافون كاش, انستا باي, ايصال كاشير">
     <meta name="author" content="عمرو إيهاب">
 
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="حاسبة النقدية الذكية">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="var(--primary-color)">
-    <meta name="msapplication-TileColor" content="#050508">
-    <meta name="msapplication-TileImage" content="icons/icon-144.png">
+    <meta name="theme-color" content="#0A0607">
+    <meta name="msapplication-TileColor" content="#0A0607">
+    <meta name="msapplication-TileImage" content="icons/icon-144.png?v=5.3.0">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=5.2.2">
+    <link rel="manifest" href="manifest.json?v=5.3.0">
 
-    <!-- Apple Icons -->
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.2.2">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.2.2">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.2.2">
+    <!-- Apple & Standard Icons (With Versioning) -->
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.3.0">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.3.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.3.0">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png?v=5.3.0">
+    <link rel="shortcut icon" href="icons/icon-192.png?v=5.3.0">
 
     <!-- Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -35,7 +42,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=5.3.0">
 </head>
 
 <body>
@@ -474,18 +481,18 @@
                             <h2
                                 style="margin: 0; font-size: 1.6em; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 900;">
                                 حاسبة النقدية الذكية Pro</h2>
-                            <p style="color: var(--primary-color); font-weight: 800; margin-top: 5px; font-size: 1em;">الإصدار 5.2.2 Pro ⭐</p>
+                            <p style="color: var(--primary-color); font-weight: 800; margin-top: 5px; font-size: 1em;">الإصدار 5.3.0 Pro ⭐</p>
 
                             <!-- بطاقة تحديثات اليوم -->
                             <div style="margin-top: 15px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 15px; padding: 12px; text-align: right;">
                                 <div style="color: var(--primary-color); font-weight: bold; font-size: 0.9em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-sparkles"></i> تحديثات اليوم (17 أغسطس 2026):
+                                    <i class="fas fa-sparkles"></i> تحديثات الإصدار 5.3.0 (18 أغسطس 2026):
                                 </div>
                                 <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.8em; line-height: 1.7; color: var(--text-color);">
-                                    <li>🎨 <b>أيقونة مجسمة جديدة (3D App Icon):</b> تصميم فخم للآلة الحاسبة الذكية ورزم الأموال.</li>
-                                    <li>🧾 <b>إيصال كاشير حراري (Thermal POS Receipt):</b> طباعة فورية لطابعات 80mm/58mm وتسلسل إيصالات تصاعدي (REC-1, REC-2...).</li>
-                                    <li>🟢 <b>أزرار الرزم الخضراء لجميع الفئات:</b> إضافة 100 رزمة لكافة الفئات الورقية والمعدنية (1، 0.50، 0.25).</li>
-                                    <li>☀️ <b>الوضع الفاتح الافتراضي الإجباري:</b> بدء التطبيق دائماً بالوضع الفاتح الملكي النظيف مع إمكانية التبديل.</li>
+                                    <li>🔄 <b>نظام Versioning متطور للأيقونات والـ Cache:</b> تحديث فوري للأيقونات والملفات على جميع الأجهزة دون الحاجة لإعادة التثبيت.</li>
+                                    <li>🖼️ <b>أيقونات PNG نقية ومعيارية:</b> توليد كافة المقاسات (72 إلى 512) بصيغة PNG المتوافقة 100% مع PWA.</li>
+                                    <li>📡 <b>كاشف الإصدارات التلقائي (Auto Update Checker):</b> مزامنة فورية مع GitHub Pages وسحب أي تغييرات فور نشرها.</li>
+                                    <li>🧾 <b>إيصال كاشير حراري (Thermal POS Receipt):</b> طباعة فورية لطابعات 80mm/58mm وتسلسل إيصالات تصاعدي.</li>
                                     <li>🛡️ <b>تخزين دائم وحماية البيانات (Persistent Storage):</b> حماية قاعدة البيانات من المسح المؤقت.</li>
                                 </ul>
                             </div>
@@ -500,10 +507,27 @@
 
                             <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88em;">
                                 
-                                <!-- الإصدار الحالي 5.2.2 -->
+                                <!-- الإصدار الحالي 5.3.0 -->
                                 <details style="background: var(--input-bg); border-right: 4px solid #10B981; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);" open>
                                     <summary style="font-weight: 900; color: #10B981; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-                                        <span>⭐ الإصدار 5.2.2 Pro (الحالي)</span>
+                                        <span>⭐ الإصدار 5.3.0 Pro (الحالي)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">18/08/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 🔄 نظام Versioning ذكي للأيقونات والتخزين المؤقت يضمن التحديث التلقائي لكافة المستخدمين.<br>
+                                        • 🖼️ إعادة تحجيم ومعايرة كافة أيقونات التطبيق (72px - 512px) كـ True PNG بدون أي مشاكل كاش.<br>
+                                        • 🚀 تحديث Service Worker لمسح الكاش القديم فورياً وفرض التحديث السلس.<br>
+                                        • 🔍 محرك فحص الإصدارات التلقائي المستمر المتصل بـ GitHub Pages.
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 5.2.2 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid var(--primary-color); border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: var(--primary-color); outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>🎨 الإصدار 5.2.2 Pro</span>
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">17/08/2026</span>
                                             <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
@@ -511,10 +535,8 @@
                                     </summary>
                                     <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
                                         • 🎨 اعتماد الأيقونة المجسمة 3D الاحترافية الجديدة لكافة المقاسات.<br>
-                                        • ⚡ تفعيل التحديث التلقائي الفوري الصامت لكافة المستخدمين.<br>
                                         • 🟢 تعميم زر (100 رزمة) لكافة الفئات بما فيها فئات الفكة والمعدنية (1، 0.50، 0.25).<br>
-                                        • 🛡️ تفعيل التخزين الدائم لحماية السجلات من المسح المؤقت.<br>
-                                        • 📜 إضافة سجل وتاريخ الإصدارات الشامل التفاعلي.
+                                        • 🛡️ تفعيل التخزين الدائم لحماية السجلات من المسح المؤقت.
                                     </div>
                                 </details>
 
@@ -942,7 +964,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=5.3.0"></script>
 </body>
 
 </html>
