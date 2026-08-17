@@ -19,12 +19,12 @@
     <meta name="msapplication-TileImage" content="icons/icon-144.png">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=5.2.1">
+    <link rel="manifest" href="manifest.json?v=5.2.2">
 
     <!-- Apple Icons -->
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.2.1">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.2.1">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.2.1">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.2.2">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.2.2">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.2.2">
 
     <!-- Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -474,7 +474,7 @@
                             <h2
                                 style="margin: 0; font-size: 1.6em; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 900;">
                                 حاسبة النقدية الذكية Pro</h2>
-                            <p style="color: var(--primary-color); font-weight: 800; margin-top: 5px; font-size: 1em;">الإصدار 5.2.1 Pro ⭐</p>
+                            <p style="color: var(--primary-color); font-weight: 800; margin-top: 5px; font-size: 1em;">الإصدار 5.2.2 Pro ⭐</p>
 
                             <!-- بطاقة تحديثات اليوم -->
                             <div style="margin-top: 15px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 15px; padding: 12px; text-align: right;">
@@ -491,38 +491,183 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
-                            <!-- قسم العد الذكي -->
-                            <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                                <div class="neu-card-title"><i class="fas fa-coins"></i> مميزات العد الذكي</div>
-                                <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-receipt" style="color: var(--primary-color);"></i> إيصال كاشير حراري فوري</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-check-circle" style="color: var(--primary-color);"></i> حاسبة فئات النقدية</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-layer-group" style="color: var(--primary-color);"></i> عد الأوراق التلقائي</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-globe" style="color: var(--primary-color);"></i> دعم العملات وأسعار الصرف</li>
-                                </ul>
+                        <!-- سجل الإصدارات والتاريخ الكامل للتطبيق (Changelog History - Collapsible Accordions) -->
+                        <div class="neu-card" style="margin-top: 15px; padding: 16px; text-align: right;">
+                            <div class="neu-card-title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span><i class="fas fa-history" style="color: var(--primary-color);"></i> 📜 سجل وتاريخ الإصدارات</span>
+                                <span style="font-size: 0.75em; background: rgba(255,51,75,0.12); color: var(--primary-color); padding: 3px 8px; border-radius: 8px; font-weight: 800;">Changelog</span>
                             </div>
 
-                            <!-- قسم المحفظة والعهدة -->
-                            <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                                <div class="neu-card-title"><i class="fas fa-wallet"></i> المحفظة والعهدة</div>
-                                <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-mobile-alt" style="color: #e60000;"></i> فودافون كاش ومحافظ إلكترونية</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-university" style="color: #6f42c1;"></i> إنستا باي (جميع البنوك)</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-balance-scale" style="color: var(--primary-color);"></i> مطابقة العهدة (عجز وزيادة)</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-calculator" style="color: var(--primary-color);"></i> آلة حاسبة رياضية بسجل</li>
-                                </ul>
-                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88em;">
+                                
+                                <!-- الإصدار الحالي 5.2.2 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #10B981; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);" open>
+                                    <summary style="font-weight: 900; color: #10B981; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>⭐ الإصدار 5.2.2 Pro (الحالي)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">17/08/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 🎨 اعتماد الأيقونة المجسمة 3D الاحترافية الجديدة لكافة المقاسات.<br>
+                                        • ⚡ تفعيل التحديث التلقائي الفوري الصامت لكافة المستخدمين.<br>
+                                        • 🟢 تعميم زر (100 رزمة) لكافة الفئات بما فيها فئات الفكة والمعدنية (1، 0.50، 0.25).<br>
+                                        • 🛡️ تفعيل التخزين الدائم لحماية السجلات من المسح المؤقت.<br>
+                                        • 📜 إضافة سجل وتاريخ الإصدارات الشامل التفاعلي.
+                                    </div>
+                                </details>
 
-                            <!-- قسم السجلات والحماية -->
-                            <div class="neu-card" style="margin-bottom: 0; padding: 15px;">
-                                <div class="neu-card-title"><i class="fas fa-shield-alt"></i> الحماية والتقارير</div>
-                                <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-lock" style="color: var(--primary-color);"></i> حماية بكلمة مرور وقفل ذكي</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fab fa-whatsapp" style="color: #25D366;"></i> تقارير ومشاركة واتساب</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-database" style="color: var(--primary-color);"></i> نسخ احتياطي واستيراد بيانات</li>
-                                    <li style="font-size: 0.8em; display: flex; align-items: center; gap: 6px;"><i class="fas fa-wifi" style="color: var(--primary-color);"></i> يعمل بدون إنترنت (PWA)</li>
-                                </ul>
+                                <!-- الإصدار 5.2.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid var(--primary-color); border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: var(--primary-color); outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>🧾 الإصدار 5.2.0 Pro</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">17/08/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 🧾 إطلاق نظام إيصال الكاشير الحراري لطابعات البلوتوث والـ POS (80mm/58mm).<br>
+                                        • 🔢 ترقيم تسلسلي تصاعدي دائم للإيصالات (REC-1, REC-2...).<br>
+                                        • ☀️ فرض الوضع الفاتح الملكي النظيف تلقائياً عند أول تشغيل.
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 5.1.5 (تحديث 25/07) -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #8B5CF6; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #8B5CF6; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>💎 الإصدار 5.1.5 (العد الذكي والعهدة والحماية الشاملة)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">25/07/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        <b>🪙 مميزات العد الذكي:</b><br>
+                                        • إيصال كاشير حراري فوري، حاسبة فئات النقدية، عد الأوراق التلقائي، دعم العملات وأسعار الصرف.<br><br>
+                                        <b>💼 المحفظة والعهدة:</b><br>
+                                        • فودافون كاش ومحافظ إلكترونية، إنستا باي (جميع البنوك)، مطابقة العهدة (عجز وزيادة)، آلة حاسبة رياضية بسجل.<br><br>
+                                        <b>🛡️ الحماية والتقارير:</b><br>
+                                        • حماية بكلمة مرور وقفل ذكي، تقارير ومشاركة واتساب، نسخ احتياطي واستيراد بيانات، دعم العمل الكامل بدون إنترنت (PWA).
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 5.1.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #3B82F6; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #3B82F6; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>⚡ الإصدار 5.1.0 Pro</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">10/06/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • ⚡ إضافة أزرار الرزم السريعة (100 ورقة) لعد الحزم النقدية بلمسة واحدة.<br>
+                                        • 📱 لوحة أرقام سريعة عائمة (Quick Numpad) مخصصة للهواتف الذكية.<br>
+                                        • 📝 نافذة تعديل وحذف السجلات اليومية المتجاوبة مع الشاشات الصغيرة.
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 4.5.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #14B8A6; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #14B8A6; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>📊 الإصدار 4.5.0 (تصدير PDF والمشاركة والبحث)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">15/05/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 📄 تصدير التقارير المالية والسجلات بصيغة PDF عالية الدقة.<br>
+                                        • 📲 مشاركة السجلات والتقارير اليومية عبر واتساب وتيليجرام بضغطة زر.<br>
+                                        • 🔍 ميزة البحث المتقدم وفلترة السجلات اليومية وخاصية "عرض الكل".<br>
+                                        • 🗑️ خاصية تصفير المربع السريع وإلغاء العمليات بسهولة.<br>
+                                        • 🛠️ إصلاحات عامة لبعض الأخطاء وتحسين الأداء.
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 4.0.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #F59E0B; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #F59E0B; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>🔒 الإصدار 4.0.0 (الأمان والنسخ الاحتياطي والفئات المعدنية)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">18/03/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 🔐 إنشاء تبويب الأمان والحماية برمز مرور وقفل ذكي.<br>
+                                        • 💾 خاصية النسخ الاحتياطي واستيراد/تصدير البيانات محلياً لمنع ضياع السجلات.<br>
+                                        • 🪙 إضافة فئات الفكة والمعدنية (1 جنيه، 0.50 نصف جنيه، 0.25 ربع جنيه) استجابة لطلب العملاء.<br>
+                                        • 🎨 تحسينات على واجهة المستخدم وتجربة الاستخدام.
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 3.0.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #8B5CF6; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #8B5CF6; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>📱 الإصدار 3.0.0</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">01/02/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 📱 دعم المحفظة الإلكترونية والخزينة الرقمية (فودافون كاش، إنستا باي).<br>
+                                        • 💬 تقارير الواتساب الذكية للمطابقة والتسليم اليومي.<br>
+                                        • 🌐 دعم العملات وأسعار الصرف الفورية (دولار، يورو).
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 2.0.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #06B6D4; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #06B6D4; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>⚙️ الإصدار 2.0.0 (تحديث الأزرار والتحكم)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">12/01/2026</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • ➕➖ إضافة أزرار الزيادة والنقصان السريعة (+ / -) بجانب كل فئة لتعديل الأعداد بلمسة واحدة.<br>
+                                        • 🧹 إضافة زر مسح الصف السريع (Clear Row) لتصفير الفئة فوراً.<br>
+                                        • 🛠️ إصلاحات برمجية شاملة وتحسين سرعة استجابة الحسابات.
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار 1.5.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #EC4899; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #EC4899; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>📝 الإصدار 1.5.0 (الآلة الحاسبة والملاحظات)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">25/12/2025</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 🧮 إنشاء وتبويب الآلة الحاسبة الرياضية المستقلة لإجراء العمليات الحسابية السريعة.<br>
+                                        • 📝 إنشاء قسم الملاحظات والشكاوى لإدارة الاقتراحات والإبلاغ عن أي مشاكل لحلها في البرنامج.<br>
+                                        • 🛠️ إصلاح بعض الأخطاء البرمجية وتحسين استقرار الواجهة.
+                                    </div>
+                                </details>
+
+                                <!-- الإصدار الأول 1.0.0 -->
+                                <details style="background: var(--input-bg); border-right: 4px solid #64748B; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <summary style="font-weight: 800; color: #64748B; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>🚀 الإصدار الأول 1.0.0 (Launch)</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">15/12/2025</span>
+                                            <i class="fas fa-chevron-down" style="font-size: 0.8em;"></i>
+                                        </div>
+                                    </summary>
+                                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                                        • 🚀 الإطلاق الرسمي الأول للتطبيق.<br>
+                                        • 💵 حاسبة عد الفئات النقدية الأساسية وحساب الإجمالي تلقائياً.<br>
+                                        • 💾 حفظ السجلات اليومية محلياً.
+                                    </div>
+                                </details>
+
                             </div>
                         </div>
 
@@ -711,7 +856,7 @@
     </nav>
 
     <!-- إعلان التحديث والمميزات الجديدة (Popup) - محسن خصيصاً للموبايل والشاشات الصغيرة -->
-    <div id="new-features-announcement" class="announcement-overlay">
+    <div id="new-features-announcement" class="announcement-overlay" style="display: none !important;">
         <div class="announcement-card" style="max-height: 88vh; overflow-y: auto; padding: 20px 16px; box-sizing: border-box;">
             <div class="announcement-close" onclick="closeAnnouncement()"><i class="fas fa-times"></i></div>
 

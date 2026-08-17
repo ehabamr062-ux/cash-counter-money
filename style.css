@@ -4237,3 +4237,15 @@
         color: #000 !important;
     }
 }
+
+/* حركة وسلاسة القوائم المنسدلة لسجل الإصدارات */
+details summary::-webkit-details-marker {
+    display: none;
+}
+details[open] summary .fa-chevron-down {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+details summary .fa-chevron-down {
+    transition: transform 0.3s ease;
+}

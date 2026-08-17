@@ -1,21 +1,22 @@
 // ===== رقم الإصدار - غيّره مع كل تحديث =====
-const APP_VERSION = '5.2.1'; // PWA Forced New App Icon Auto-Refresh
+const APP_VERSION = '5.2.2'; // Forced Global Cache Invalidation & Instant Refresh
 const CACHE_NAME = `cash-calc-v${APP_VERSION}`;
 
 const STATIC_ASSETS = [
     './',
-    './index.html',
-    './style.css',
-    './script.js',
-    './manifest.json',
-    './icons/icon-72.png',
-    './icons/icon-96.png',
-    './icons/icon-128.png',
-    './icons/icon-144.png',
-    './icons/icon-152.png',
-    './icons/icon-192.png',
-    './icons/icon-384.png',
-    './icons/icon-512.png',
+    './index.html?v=5.2.2',
+    './style.css?v=5.2.2',
+    './script.js?v=5.2.2',
+    './manifest.json?v=5.2.2',
+    './version.json?v=5.2.2',
+    './icons/icon-72.png?v=5.2.2',
+    './icons/icon-96.png?v=5.2.2',
+    './icons/icon-128.png?v=5.2.2',
+    './icons/icon-144.png?v=5.2.2',
+    './icons/icon-152.png?v=5.2.2',
+    './icons/icon-192.png?v=5.2.2',
+    './icons/icon-384.png?v=5.2.2',
+    './icons/icon-512.png?v=5.2.2',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
     'https://cdn.jsdelivr.net/npm/sweetalert2@11',
     'https://html2canvas.hertzen.com/dist/html2canvas.min.js',
@@ -70,6 +71,20 @@ self.addEventListener('fetch', event => {
     if (url.hostname.includes('exchangerate') || url.hostname.includes('api.')) {
         event.respondWith(
             fetch(event.request).catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // للأيقونات والمانفيست: Network First لضمان تحديث الأيقونات على الشاشة فوراً
+    if (url.pathname.includes('/icons/') || url.pathname.includes('manifest.json')) {
+        event.respondWith(
+            fetch(event.request).then(networkResponse => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const clone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return networkResponse;
+            }).catch(() => caches.match(event.request))
         );
         return;
     }

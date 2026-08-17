@@ -3109,24 +3109,38 @@ window.AppStorage.initSync();
         // --- 📢 نظام إعلان المميزات الجديدة والتحديثات (يظهر أول مرة فقط) 📢 ---
         window.closeAnnouncement = function () {
             const overlay = document.getElementById('new-features-announcement');
-            if (overlay) overlay.style.display = 'none';
-            AppStorage.setItem('announcement_v5_1_1_seen', 'true');
-            playSound('success');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = '0.3s';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+            AppStorage.setItem('announcement_v5_2_1_seen', 'true');
+            try { localStorage.setItem('announcement_v5_2_1_seen', 'true'); } catch (e) {}
+            playSound('tick');
         };
 
         function checkAnnouncement() {
-            const seen = AppStorage.getItem('announcement_v5_1_1_seen');
+            const seen = AppStorage.getItem('announcement_v5_2_1_seen') || localStorage.getItem('announcement_v5_2_1_seen');
             if (!seen) {
                 setTimeout(() => {
                     const overlay = document.getElementById('new-features-announcement');
-                    if (overlay) overlay.style.display = 'flex';
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        overlay.style.opacity = '1';
+                        playSound('success');
+                    }
                 }, 800);
             }
         }
 
         document.getElementById('about-app-btn')?.addEventListener('click', () => {
             const overlay = document.getElementById('new-features-announcement');
-            if (overlay) overlay.style.display = 'flex';
+            if (overlay) {
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '1';
+            }
         });
 
         // تشغيل التحقق من الإعلان مع بداية التطبيق
@@ -3550,17 +3564,6 @@ window.AppStorage.initSync();
             // تفعيل الوضع الافتراضي (الرئيسية)
             handleBottomNav('home', document.querySelector('.nav-item.active'));
 
-            // إعلان المميزات الجديدة والتحديث (تظهر مرة واحدة فقط عند نزول الإصدار 5.2.1)
-            if (!AppStorage.getItem('announcement_v5_2_1_seen')) {
-                setTimeout(() => {
-                    const announcement = document.getElementById('new-features-announcement');
-                    if (announcement) {
-                        announcement.style.display = 'flex';
-                        playSound('success');
-                    }
-                }, 800);
-            }
-
             // Load password settings
             document.getElementById('enable-password').checked = AppStorage.getItem('passwordEnabled') === 'true';
             document.getElementById('lock-on-hide').checked = AppStorage.getItem('lockOnHide') === 'true';
@@ -3705,12 +3708,13 @@ window.AppStorage.initSync();
                             console.log('[App] Checking for SW updates...');
                         }, 5 * 60 * 1000);
 
-                        // اكتشاف تحديث جديد
+                        // اكتشاف تحديث جديد وتطبيقه فوراً وتلقائياً
                         reg.addEventListener('updatefound', () => {
                             const newWorker = reg.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    showUpdateNotification();
+                                    // تخطي الانتظار وتطبيق الإصدار الجديد فوراً
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
                                 }
                             });
                         });
@@ -3720,13 +3724,17 @@ window.AppStorage.initSync();
                 // استقبال رسالة من SW عند التحديث
                 navigator.serviceWorker.addEventListener('message', event => {
                     if (event.data && event.data.type === 'SW_UPDATED') {
-                        showUpdateNotification(event.data.version);
+                        window.location.reload();
                     }
                 });
 
-                // تحديث تلقائي عند تغيير الـ controller (يعني SW جديد أخد التحكم)
+                // تحديث تلقائي فوري وسلس عند تفعيل الإصدار الجديد
+                let refreshing = false;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    window.location.reload();
+                    if (!refreshing) {
+                        refreshing = true;
+                        window.location.reload();
+                    }
                 });
             });
         }
@@ -3824,19 +3832,6 @@ window.AppStorage.initSync();
             } finally {
                 hiddenEls.forEach(el => el.style.visibility = '');
             }
-        }
-
-        function closeAnnouncement() {
-            const announcement = document.getElementById('new-features-announcement');
-            if (announcement) {
-                announcement.style.opacity = '0';
-                announcement.style.transition = '0.3s';
-                setTimeout(() => {
-                    announcement.style.display = 'none';
-                    AppStorage.setItem('announcement_v5_0_0_seen', 'true');
-                }, 300);
-            }
-            playSound('tick');
         }
 
         // ---------------------------------------------------------
