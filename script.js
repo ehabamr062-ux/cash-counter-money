@@ -5185,3 +5185,43 @@ ${diffIcon} *الفارق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG'
                 }
             });
         });
+
+        // --- 📲 تثبيت التحديث الشامل V6.0.0 على الشاشة الرئيسية 📲 ---
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+        });
+
+        window.showInstallUpdateGuide = function() {
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                deferredInstallPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        Swal.fire({ icon: 'success', title: 'تم البدء!', text: 'جاري تثبيت التحديث الجديد على هاتفك ✅', timer: 2000, showConfirmButton: false });
+                    }
+                    deferredInstallPrompt = null;
+                });
+                return;
+            }
+            Swal.fire({
+                title: '📲 تثبيت التحديث الشامل على الشاشة',
+                html: `
+                    <div style="text-align: right; direction: rtl; font-size: 0.88em; line-height: 1.7; color: var(--text-color); padding: 5px;">
+                        <p style="font-weight: 850; margin-bottom: 12px; color: var(--primary-color);">
+                            لتثبيت التحديث الشامل V6.0.0 وضمان ظهور أحدث نسخة على هاتفك:
+                        </p>
+                        <div style="background: var(--input-bg); padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border-color); margin-bottom: 10px;">
+                            <b>1️⃣ الخطوة الأولى:</b> اذهب لشاشة هاتفك واحذف أيقونة التطبيق السابقة (إزالة / إلغاء التثبيت).
+                        </div>
+                        <div style="background: var(--input-bg); padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border-color);">
+                            <b>2️⃣ الخطوة الثانية:</b> افتح قائمة خيارات المتصفح (⋮ أو 📤) واضغط على <b>«إضافة إلى الشاشة الرئيسية»</b> أو <b>«تثبيت التطبيق»</b>.
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'حسناً، فهمت ✅',
+                confirmButtonColor: 'var(--primary-color)',
+                background: 'var(--card-background)',
+                color: 'var(--text-color)'
+            });
+        };
