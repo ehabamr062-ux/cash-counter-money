@@ -5,8 +5,11 @@ echo   🚀 جاري رفع التحديثات تلقائياً إلى GitHub...
 echo ========================================================
 cd /d "%~dp0"
 
+git config user.name "ehabamr062-ux"
+git config user.email "ehabamr062-ux@users.noreply.github.com"
+
 git add -A
-git commit -m "تحديث تلقائي: إصلاح الأمان، دعم الأوفلاين 100%%، والمكتبات المحلية v5.4.1"
+git commit -m "تحديث تلقائي: تحسينات وتعديلات النظام"
 git push origin main
 
 if %ERRORLEVEL% equ 0 (
