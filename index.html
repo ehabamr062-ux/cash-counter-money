@@ -21,28 +21,28 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0A0607">
     <meta name="msapplication-TileColor" content="#0A0607">
-    <meta name="msapplication-TileImage" content="icons/icon-144.png?v=5.3.0">
+    <meta name="msapplication-TileImage" content="icons/icon-144.png?v=5.4.0">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=5.3.0">
+    <link rel="manifest" href="manifest.json?v=5.4.0">
 
     <!-- Apple & Standard Icons (With Versioning) -->
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.3.0">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.3.0">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.3.0">
-    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png?v=5.3.0">
-    <link rel="shortcut icon" href="icons/icon-192.png?v=5.3.0">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.4.0">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.4.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.4.0">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png?v=5.4.0">
+    <link rel="shortcut icon" href="icons/icon-192.png?v=5.4.0">
 
-    <!-- Libraries -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- Local Fast & 100% Offline Libraries -->
+    <link rel="stylesheet" href="libs/cairo.css">
+    <link rel="stylesheet" href="libs/font-awesome.min.css">
+    <script src="libs/sweetalert2.all.min.js"></script>
+    <script src="libs/html2canvas.min.js"></script>
+    <script src="libs/jspdf.umd.min.js"></script>
+    <script src="libs/chart.umd.min.js"></script>
+    <script src="libs/email.min.js"></script>
 
-    <link rel="stylesheet" href="style.css?v=5.3.0">
+    <link rel="stylesheet" href="style.css?v=5.4.0">
 </head>
 
 <body>
@@ -51,21 +51,12 @@
             <!-- شريط الأدوات العلوي الجديد (Flexbox) -->
             <div class="header-controls">
                 <div class="header-group-start">
-                    <button id="settings-btn" class="btn"
-                        style="padding: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px;" title="الإعدادات"><i
-                            class="fas fa-cog"></i></button>
-                    <button id="header-receipt-btn" class="btn"
-                        style="padding: 8px; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary-color);" title="إيصال كاشير حراري"><i
-                            class="fas fa-receipt"></i></button>
-                    <button id="header-mode-toggle" class="btn"
-                        style="padding: 8px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="الوضع الليلي"><i
-                            class="fas fa-moon"></i></button>
+                    <button id="settings-btn" class="btn header-action-btn" title="الإعدادات"><i class="fas fa-cog"></i></button>
+                    <button id="header-receipt-btn" class="btn header-action-btn" title="إيصال كاشير حراري"><i class="fas fa-receipt"></i></button>
+                    <button id="header-mode-toggle" class="btn header-action-btn" title="الوضع الليلي / النهاري"><i class="fas fa-moon"></i></button>
                 </div>
-                <div id="currency-status-badge" class="btn"
-                    style="padding: 0 12px; height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 0.9em; color: white; background: var(--secondary-color); border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; transition: all 0.3s; white-space: nowrap; flex: 1 1 auto;">
-                    🇪🇬 جنيه</div>
-                <input type="date" id="entry-date"
-                    style="padding: 5px; width: 115px; max-width: 125px; height: 42px; font-size: 0.85em; border-radius: 14px; font-weight: bold; text-align: center; flex: 0 0 auto;">
+                <div id="currency-status-badge" class="btn" title="العملة الحالية">🇪🇬 جنيه</div>
+                <input type="date" id="entry-date" title="تاريخ اليومية">
             </div>
 
             <h1><i class="fas fa-calculator"></i> <span id="app-title-text">حاسبة النقود النقدية</span></h1>
@@ -79,32 +70,66 @@
             <div class="digital-wallet">
                 <div class="digital-card">
                     <div class="digital-label" id="vodafone-label"><i class="fas fa-mobile-alt"></i> فودافون كاش</div>
-                    <input type="number" id="vodafone-cash" class="digital-input" placeholder="المبلغ"
-                        inputmode="numeric">
+                    <input type="number" id="vodafone-cash" class="digital-input" placeholder="0" inputmode="numeric">
                 </div>
                 <div class="digital-card">
                     <div class="digital-label" id="instapay-label"><i class="fas fa-university"></i> إنستا باي</div>
-                    <input type="number" id="instapay" class="digital-input" placeholder="المبلغ" inputmode="numeric">
+                    <input type="number" id="instapay" class="digital-input" placeholder="0" inputmode="numeric">
                 </div>
             </div>
 
-            <div id="total-display" onclick="showPapersDetails()" style="cursor: pointer;">
+            <div id="total-display" onclick="showPapersDetails()" title="اضغط لعرض تفاصيل وحساب الأوراق">
                 <h2>الإجمالي النقدي:</h2>
-                <span id="total-amount">0.00</span> <span id="currency-label">جنيه</span> <span id="equivalent"></span>
-                <div id="papers-display"
-                    style="font-size: 1.1em; color: var(--gold-light); margin-top: 5px; font-weight: 700;">
-                    📄 عدد الأوراق: <span id="total-papers">0</span>
+                <div class="total-amount-row">
+                    <span id="total-amount">0.00</span>
+                    <span id="currency-label">جنيه</span>
+                    <span id="equivalent"></span>
+                </div>
+                <div id="tafqeet-display" class="tafqeet-display">فقط صفر جنيه لا غير</div>
+                <div id="papers-display">
+                    <i class="fas fa-layer-group"></i> عدد الأوراق: <span id="total-papers">0</span>
                 </div>
 
-                <div id="total-breakdown"
-                    style="font-size: 0.95em; color: var(--secondary-color); margin-top: 10px; display: none; background: rgba(0,0,0,0.05); padding: 5px 10px; border-radius: 10px;">
+                <div id="total-breakdown" style="display: none;">
                     ( <span id="cash-breakdown-label">💵 نقدي:</span> <span id="cash-only-total">0</span> | <span
                         id="digital-breakdown-label">📱 رقمي:</span> <span id="digital-only-total">0</span> )
                 </div>
             </div>
+
+            <!-- كارت مطابقة العهدة ومبيعات النظام المباشر -->
+            <div id="custody-card" class="custody-card" style="display: none;">
+                <div class="custody-header">
+                    <div class="custody-title">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>مطابقة العهدة (مبيعات السيستم)</span>
+                    </div>
+                    <span id="custody-badge" class="custody-badge neutral">أدخل مبيعات النظام</span>
+                </div>
+                <div class="custody-body">
+                    <div class="custody-input-wrap">
+                        <input type="number" id="quick-system-target" placeholder="المبلغ المطلوب بالسيستم" inputmode="numeric">
+                        <button type="button" class="btn custody-clear-btn" onclick="clearCustodyTarget()" title="مسح"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="custody-details-row">
+                        <div class="c-col">
+                            <span class="c-label">العهدة المطلوبة:</span>
+                            <span id="custody-target-val" class="c-val">0.00 ج.م</span>
+                        </div>
+                        <div class="c-col">
+                            <span class="c-label">الفعلي بالدرج:</span>
+                            <span id="custody-actual-val" class="c-val">0.00 ج.م</span>
+                        </div>
+                        <div class="c-col highlight">
+                            <span id="custody-diff-label" class="c-label">الفارق:</span>
+                            <span id="custody-diff-val" class="c-val">0.00 ج.م</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="autosave-indicator"><i class="fas fa-sync-alt"></i> تم الحفظ تلقائياً</div>
 
-            <!-- أزرار الإجراءات الأربعة مدمجة داخل الكارت مباشرة بدون أي فراغ -->
+            <!-- أزرار الإجراءات الأربعة -->
             <div class="actions">
                 <button id="save-btn" class="btn"><i class="fas fa-save"></i> حفظ يومية</button>
                 <button id="share-btn" class="btn"><i class="fab fa-whatsapp"></i> مشاركة</button>
@@ -130,10 +155,12 @@
                 </div>
                 <input type="text" id="search-input" placeholder="البحث في السجلات..." style="margin: 0 5px; flex: 2;">
                 <div class="filter-buttons-group">
-                    <button id="filter-btn" class="btn filter-mini-btn" style="color: var(--secondary-color);"><i
+                    <button id="filter-btn" class="btn filter-mini-btn" style="color: var(--secondary-color);" title="بحث"><i
                             class="fas fa-search"></i></button>
-                    <button id="clear-filter-btn" class="btn filter-mini-btn" style="color: #dc3545;"><i
+                    <button id="clear-filter-btn" class="btn filter-mini-btn" style="color: #dc3545;" title="مسح الفلتر"><i
                             class="fas fa-times"></i></button>
+                    <button id="excel-export-btn" class="btn filter-mini-btn excel-btn" onclick="exportHistoryToExcel()" title="تصدير السجلات إلى ملف Excel"><i
+                            class="fas fa-file-excel" style="color: #10B981;"></i></button>
                     <button id="show-all-btn" class="btn"
                         style="padding: 0 15px !important; height: 40px !important; font-size: 0.85em; white-space: nowrap; width: auto !important; min-height: 40px !important; color: var(--primary-color); display: flex; align-items: center;">عرض
                         الكل</button>
@@ -187,12 +214,12 @@
 
                     <!-- تبويب حسابي -->
                     <div id="tab-account" class="tab-pane">
-                        <div class="neu-card" style="padding: 0; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        <div class="neu-card" style="padding: 0; overflow: hidden; border: 1.5px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
                             
                             <!-- هيدر الملف الشخصي (بانر) -->
-                            <div style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); padding: 30px 20px 50px; text-align: center; position: relative;">
-                                <h3 style="margin: 0; font-size: 1.4em; font-weight: 800; color: #000;"><i class="fas fa-user-circle"></i> الملف الشخصي</h3>
-                                <p style="margin: 5px 0 0; font-size: 0.9em; color: rgba(0,0,0,0.7); font-weight: bold;">تخصيص الهوية الخاصة بك</p>
+                            <div class="account-banner" style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); padding: 28px 20px 48px; text-align: center; position: relative;">
+                                <h3 style="margin: 0; font-size: 1.4em; font-weight: 900; color: #FFFFFF;"><i class="fas fa-user-circle"></i> الملف الشخصي</h3>
+                                <p style="margin: 6px 0 0; font-size: 0.9em; color: rgba(255,255,255,0.9); font-weight: 750;">تخصيص الهوية وبيانات المسؤول</p>
                             </div>
 
                             <div style="padding: 0 20px 20px; position: relative; margin-top: -45px; text-align: center;">
@@ -200,27 +227,27 @@
                                 <!-- صورة المستخدم مع بادج التعديل -->
                                 <div style="position: relative; display: inline-block; margin-bottom: 20px;">
                                     <div id="current-avatar"
-                                        style="width: 90px; height: 90px; margin: 0 auto; background: var(--card-background); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.8em; border: 4px solid var(--card-background); cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.4); overflow: hidden;"
+                                        style="width: 90px; height: 90px; margin: 0 auto; background: var(--card-background); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.8em; border: 4px solid var(--card-background); cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden;"
                                         onclick="showAvatarOptions()">👤</div>
                                     <!-- بادج القلم -->
                                     <div onclick="showAvatarOptions()"
-                                        style="position: absolute; bottom: 2px; right: 2px; width: 30px; height: 30px; background: var(--card-background); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid var(--primary-color); color: var(--primary-color);">
+                                        style="position: absolute; bottom: 2px; right: 2px; width: 32px; height: 32px; background: var(--card-background); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 2px solid var(--primary-color); color: var(--primary-color);">
                                         <i class="fas fa-pen"></i></div>
                                 </div>
 
                                 <!-- قائمة خيارات الأفاتار -->
                                 <div id="avatar-selector"
-                                    style="display: none; background: var(--card-background); padding: 15px; border-radius: 20px; border: 1px solid var(--border-color); margin-bottom: 20px; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                                    style="display: none; background: var(--input-bg); padding: 15px; border-radius: 20px; border: 1.5px solid var(--border-color); margin-bottom: 20px; text-align: right; box-shadow: 0 10px 30px rgba(0,0,0,0.12);">
 
                                     <!-- زر رفع صورة من الجهاز -->
                                     <button onclick="triggerImageUpload()"
-                                        style="width: 100%; background: linear-gradient(135deg,var(--secondary-color),var(--primary-color)); color: #000; border: none; border-radius: 12px; padding: 12px; font-family: Tajawal, sans-serif; font-weight: 800; font-size: 0.9em; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        style="width: 100%; background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); color: #FFFFFF; border: none; border-radius: 12px; padding: 12px; font-family: Tajawal, sans-serif; font-weight: 850; font-size: 0.92em; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                         <i class="fas fa-camera"></i> رفع صورة من الجهاز
                                     </button>
                                     <input type="file" id="avatar-upload-input" accept="image/*" style="display:none;">
 
                                     <!-- فاصل -->
-                                    <div style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 12px; text-align: center; font-weight: bold;">── أو اختر إيموجي ──</div>
+                                    <div style="font-size: 0.82em; color: var(--text-muted); margin-bottom: 12px; text-align: center; font-weight: 850;">── أو اختر رمز تعبيري ──</div>
 
                                     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
                                         <span class="avatar-option" onclick="selectAvatar('👨‍💼')">👨‍💼</span>
@@ -260,216 +287,339 @@
                                 </div>
 
                                 <div style="margin-bottom: 20px; text-align: right;">
-                                    <label style="display:block; margin-bottom:8px; font-size: 0.85em; color: var(--text-muted); font-weight: bold;">معرف الجهاز الخاص بك (ID):</label>
+                                    <label style="display:block; margin-bottom:8px; font-size: 0.88em; color: var(--text-color); font-weight: 850;">معرف الجهاز الخاص بك (ID):</label>
                                     <div style="display: flex; gap: 8px;">
                                         <input type="text" id="user-serial-display" readonly
-                                            style="flex-grow: 1; background: var(--shadow-light); color: var(--primary-color); border: 1px dashed var(--primary-color); border-radius: 12px; padding: 12px; font-family: monospace; letter-spacing: 1px; text-align: center; cursor: default; font-weight: bold; outline: none;">
+                                            style="flex-grow: 1; background: var(--input-bg); color: var(--primary-color); border: 1.5px dashed var(--primary-color); border-radius: 12px; padding: 12px; font-family: monospace; letter-spacing: 1px; text-align: center; cursor: default; font-weight: 900; outline: none;">
                                         <button onclick="copySerial()" class="btn"
-                                            style="padding: 0 15px; border-radius: 12px; font-size: 1.1em; background: var(--card-background); color: var(--primary-color); border: 1px solid var(--border-color);"><i class="fas fa-copy"></i></button>
+                                            style="padding: 0 16px; border-radius: 12px; font-size: 1.1em; background: var(--card-background); color: var(--primary-color); border: 1.5px solid var(--border-color);"><i class="fas fa-copy"></i></button>
                                     </div>
                                 </div>
 
-                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; color: var(--text-muted); padding: 15px; background: var(--input-bg); border-radius: 15px; border: 1px solid var(--border-color);">
-                                    <span style="font-weight: bold;"><i class="fas fa-calendar-check" style="color: var(--primary-color); margin-left: 5px;"></i> انضمام: <span id="join-date-display">--</span></span>
-                                    <span id="login-history-trigger" style="cursor: pointer; background: var(--card-background); padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: bold;"
-                                        title="اضغط مرتين لعرض سجل الدخول"><i class="fas fa-history" style="color: var(--primary-color); margin-left: 5px;"></i> السجلات: <span id="user-records-count">0</span></span>
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; color: var(--text-color); padding: 14px 16px; background: var(--input-bg); border-radius: 15px; border: 1.5px solid var(--border-color); margin-bottom: 16px;">
+                                    <span style="font-weight: 850;"><i class="fas fa-calendar-check" style="color: var(--primary-color); margin-left: 5px;"></i> انضمام: <span id="join-date-display">--</span></span>
+                                    <span id="login-history-trigger" style="cursor: pointer; background: var(--card-background); padding: 6px 12px; border-radius: 10px; border: 1.5px solid var(--border-color); font-weight: 850;"
+                                        title="اضغط لعرض سجل الدخول"><i class="fas fa-history" style="color: var(--primary-color); margin-left: 5px;"></i> السجلات: <span id="user-records-count">0</span></span>
                                 </div>
-                            </div>
-                        </div>
 
-                            <button id="save-account-btn" class="btn"
-                                style="width: 100%; background: var(--gold-gradient-simple); color: #000; font-weight: 800; border: none; padding: 14px;">💾
-                                حفظ البيانات</button>
+                                <button id="save-account-btn" class="btn settings-btn-primary"
+                                    style="width: 100%; padding: 14px; font-weight: 900; border-radius: 14px; font-size: 1.05em; border: none;"><i class="fas fa-save"></i>
+                                    حفظ البيانات</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- تبويب عام -->
                     <div id="tab-general" class="tab-pane active">
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-bolt"></i> أدوات سريعة</div>
-                            <div class="general-grid">
-                                <button id="receipt-action-btn" class="action-btn-small"><i class="fas fa-receipt"
-                                        style="color: #FFD700;"></i> إيصال كاشير</button>
-                                <button id="pdf-export-btn" class="action-btn-small"><i class="fas fa-file-pdf"
-                                        style="color: #FF4444;"></i> تقرير واتساب</button>
-                                <button id="screenshot-btn" class="action-btn-small"><i class="fas fa-camera"
-                                        style="color: var(--primary-color);"></i> مشاركة صورة</button>
-                                <button id="digital-report-btn" class="action-btn-small"><i class="fas fa-wallet"
-                                        style="color: #FFA500;"></i> تقرير رقمي</button>
-                                <button id="about-app-btn" class="action-btn-small"><i class="fas fa-info-circle"
-                                        style="color: #0d6efd;"></i> حول البرنامج</button>
+                        <!-- بطاقة الأدوات السريعة -->
+                        <details class="neu-card settings-accordion" open>
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-bolt"></i> <span>أدوات وإجراءات سريعة</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <p style="font-size: 0.82em; color: var(--text-muted); margin: 0 0 12px; font-weight: 750;">وصول فوري لأهم أدوات الطباعة والتقارير المالية ومشاركة اليومية:</p>
+                                <div class="general-grid">
+                                    <button id="receipt-action-btn" class="action-btn-small"><i class="fas fa-receipt"
+                                            style="color: #FFD700;"></i> إيصال كاشير</button>
+                                    <button id="pdf-export-btn" class="action-btn-small"><i class="fas fa-file-pdf"
+                                            style="color: #FF4444;"></i> تقرير واتساب</button>
+                                    <button id="screenshot-btn" class="action-btn-small"><i class="fas fa-camera"
+                                            style="color: var(--primary-color);"></i> مشاركة صورة</button>
+                                    <button id="digital-report-btn" class="action-btn-small"><i class="fas fa-wallet"
+                                            style="color: #FFA500;"></i> تقرير رقمي</button>
+                                    <button id="about-app-btn" class="action-btn-small"><i class="fas fa-info-circle"
+                                            style="color: #0d6efd;"></i> حول البرنامج</button>
+                                </div>
                             </div>
-                        </div>
+                        </details>
 
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-sliders-h"></i> إعدادات التشغيل</div>
-                            <div class="switch-container">
-                                <span style="color: var(--primary-color); font-weight: 700;"><i class="fas fa-save"></i>
-                                    الحفظ التلقائي للبيانات</span>
-                                <label class="royal-switch">
-                                    <input type="checkbox" id="autosave-toggle" checked>
-                                    <span class="switch-slider"></span>
-                                </label>
+                        <!-- بطاقة إعدادات التشغيل -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-sliders-h"></i> <span>خيارات التشغيل والمطابقة</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <div class="switch-container">
+                                    <div>
+                                        <span style="color: var(--text-color); font-weight: 850; display: block; font-size: 0.95em;"><i class="fas fa-save" style="color: var(--primary-color); margin-left: 6px;"></i> الحفظ التلقائي للبيانات</span>
+                                        <span style="font-size: 0.78em; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 700;">يحفظ الأرقام تلقائياً عند تغييرها لمنع فقدان البيانات</span>
+                                    </div>
+                                    <label class="royal-switch">
+                                        <input type="checkbox" id="autosave-toggle" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="switch-container" style="margin-top: 10px;">
+                                    <div>
+                                        <span style="color: var(--text-color); font-weight: 850; display: block; font-size: 0.95em;"><i class="fas fa-balance-scale" style="color: var(--primary-color); margin-left: 6px;"></i> مطابقة العهدة (مبيعات السيستم)</span>
+                                        <span style="font-size: 0.78em; color: var(--text-muted); display: block; margin-top: 4px; font-weight: 700;">إظهار كارت كشف العجز والزيادة ومبيعات النظام بالشاشة الرئيسية</span>
+                                    </div>
+                                    <label class="royal-switch">
+                                        <input type="checkbox" id="show-custody-card-toggle" onchange="toggleCustodyCardVisibility(this.checked)">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
                             </div>
-                            <p style="font-size: 0.75em; color: var(--text-muted); margin: 8px 5px 0;">يحفظ الأرقام
-                                تلقائياً عند تغييرها لمنع فقدان البيانات إذا أغلق التطبيق فجأة.</p>
-                        </div>
-                    </div>
+                        </details>
 
-
+                        <!-- بطاقة بيانات المتجر والإيصال الحراري -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-store"></i> <span>بيانات المتجر والإيصال الحراري</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <p style="font-size: 0.82em; color: var(--text-muted); margin: 0 0 12px; font-weight: 750;">البيانات التي تُطبع في رأس وتذييل إيصال الكاشير الحراري لطابعات 80mm/58mm:</p>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 6px; font-size: 0.86em; font-weight: 850; color: var(--text-color);"><i class="fas fa-building" style="color: var(--primary-color); margin-left: 4px;"></i> اسم المحل / المنشأة:</label>
+                                        <input type="text" id="store-name-input" placeholder="اسم المحل / المنشأة (يظهر في رأس الفاتورة)">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 6px; font-size: 0.86em; font-weight: 850; color: var(--text-color);"><i class="fas fa-phone-alt" style="color: var(--primary-color); margin-left: 4px;"></i> رقم الهاتف / خدمة العملاء:</label>
+                                        <input type="tel" id="store-phone-input" placeholder="رقم الهاتف (يظهر في الفاتورة)" style="direction: ltr; text-align: right;">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 6px; font-size: 0.86em; font-weight: 850; color: var(--text-color);"><i class="fas fa-map-marker-alt" style="color: var(--primary-color); margin-left: 4px;"></i> عنوان الفرع / المتجر:</label>
+                                        <input type="text" id="store-address-input" placeholder="عنوان المتجر أو الفرع">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 6px; font-size: 0.86em; font-weight: 850; color: var(--text-color);"><i class="fas fa-receipt" style="color: var(--primary-color); margin-left: 4px;"></i> الرقم الضريبي / السجل التجاري:</label>
+                                        <input type="text" id="store-tax-input" placeholder="الرقم الضريبي أو السجل التجاري">
+                                    </div>
+                                    <button id="save-store-btn" onclick="saveStoreSettings()" class="btn"
+                                        style="width: 100%; padding: 12px; font-weight: 850; border-radius: 12px; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <i class="fas fa-save"></i> حفظ بيانات المتجر
+                                    </button>
+                                </div>
+                            </div>
+                        </details>
+                    </div><!-- نهاية tab-general -->
 
                     <!-- تبويب المظهر -->
                     <div id="tab-appearance" class="tab-pane">
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-palette"></i> المظهر والتفضيلات</div>
-                            <button id="mode-toggle-btn" class="btn" style="width: 100%; margin-bottom: 20px;"><i
-                                    class="fas fa-moon"></i> الوضع الليلي/النهاري</button>
-
-                            <!-- قسم اختيار اللون -->
-                            <label
-                                style="display:block; margin-bottom:12px; color: var(--text-muted); font-size: 0.85em; font-weight: bold;">سمة
-                                الألوان الأساسية:</label>
-                            <div
-                                style="display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                <div onclick="selectColorTheme('purple')" class="color-circle"
-                                    style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);" title="بنفسجي ملكي (الأساسي)"></div>
-                                <div onclick="selectColorTheme('gold')" class="color-circle"
-                                    style="background: linear-gradient(135deg, #D4AF37, #996515);"
-                                    title="ذهبي فاخر"></div>
-                                <div onclick="selectColorTheme('blue')" class="color-circle"
-                                    style="background: #3B82F6;" title="أزرق كلاسيك"></div>
-                                <div onclick="selectColorTheme('green')" class="color-circle"
-                                    style="background: #10B981;" title="أخضر مريح"></div>
-                                <div onclick="selectColorTheme('red')" class="color-circle" style="background: #EF4444;"
-                                    title="أحمر جريء"></div>
+                        <!-- نمط الإضاءة والعرض -->
+                        <details class="neu-card settings-accordion" open>
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-adjust"></i> <span>نمط الإضاءة والعرض</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <p style="font-size: 0.82em; color: var(--text-muted); margin: 0 0 12px; font-weight: 750;">التبديل الفوري بين الوضع الفاتح الملكي النظيف والوضع الليلي المخملي الفاخر:</p>
+                                <button id="mode-toggle-btn" class="btn" style="width: 100%; padding: 14px; font-weight: 850; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.95em;">
+                                    <i class="fas fa-moon"></i> الوضع الليلي / النهاري
+                                </button>
                             </div>
+                        </details>
 
-                            <div class="switch-container">
-                                <span id="sound-label-text" style="color: var(--primary-color); font-weight: 700;">🔊
-                                    الأصوات</span>
-                                <label class="royal-switch">
-                                    <input type="checkbox" id="sound-toggle" checked>
-                                    <span class="switch-slider"></span>
-                                </label>
+                        <!-- سمة الألوان الأساسية -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-palette"></i> <span>سمة الألوان الأساسية</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <label style="display:block; margin-bottom:10px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">اختر لون الأزرار والإطارات التفاعلية للبرنامج:</label>
+                                <div class="color-picker-box" style="display: flex; gap: 15px; justify-content: center; padding: 16px; border-radius: 16px; border: 1.5px solid var(--border-color); background: var(--input-bg);">
+                                    <div onclick="selectColorTheme('purple')" class="color-circle"
+                                        style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);" title="بنفسجي ملكي (الأساسي)"></div>
+                                    <div onclick="selectColorTheme('gold')" class="color-circle"
+                                        style="background: linear-gradient(135deg, #D4AF37, #996515);"
+                                        title="ذهبي فاخر"></div>
+                                    <div onclick="selectColorTheme('blue')" class="color-circle"
+                                        style="background: #3B82F6;" title="أزرق كلاسيك"></div>
+                                    <div onclick="selectColorTheme('green')" class="color-circle"
+                                        style="background: #10B981;" title="أخضر مريح"></div>
+                                    <div onclick="selectColorTheme('red')" class="color-circle" style="background: #EF4444;"
+                                        title="أحمر جريء"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-language"></i> اللغة والعملة</div>
-                            <label id="language-label-settings"
-                                style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">اللغة:</label>
-                            <select id="language-select" style="width: 100%; margin-bottom: 12px;">
-                                <option value="ar">🇸🇦 العربية</option>
-                                <option value="en">🇺🇸 English</option>
-                                <option value="fr">🇫🇷 Français</option>
-                            </select>
-                        </div>
-                    </div>
+                        </details>
+
+                        <!-- الأصوات واللغة -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-volume-up"></i> <span>الأصوات واللغة</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <div class="switch-container" style="margin-bottom: 14px;">
+                                    <span id="sound-label-text" style="color: var(--text-color); font-weight: 850; font-size: 0.95em;">🔊 المؤثرات الصوتية للنقرات والأزرار</span>
+                                    <label class="royal-switch">
+                                        <input type="checkbox" id="sound-toggle" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label id="language-label-settings"
+                                        style="display:block; margin-bottom:6px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">لغة واجهة البرنامج:</label>
+                                    <select id="language-select" style="width: 100%;">
+                                        <option value="ar">🇸🇦 العربية</option>
+                                        <option value="en">🇺🇸 English</option>
+                                        <option value="fr">🇫🇷 Français</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </details>
+                    </div><!-- نهاية tab-appearance -->
 
                     <!-- تبويب إدارة البيانات -->
                     <div id="tab-data" class="tab-pane">
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-coins"></i> إعدادات العملة</div>
-                            <label id="currency-label-settings"
-                                style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">العملة:</label>
-                            <select id="currency-select" style="width: 100%; margin-bottom: 15px;">
-                                <option value="egp">🇪🇬 جنيه مصري</option>
-                                <option value="usd">🇺🇸 دولار أمريكي</option>
-                                <option value="eur">🇪🇺 يورو</option>
-                            </select>
+                        <!-- إعدادات العملة وأسعار الصرف -->
+                        <details class="neu-card settings-accordion" open>
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-coins"></i> <span>إعدادات العملة وأسعار الصرف</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <label id="currency-label-settings"
+                                    style="display:block; margin-bottom:8px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">العملة الأساسية:</label>
+                                <select id="currency-select" style="width: 100%; margin-bottom: 14px;">
+                                    <option value="egp">🇪🇬 جنيه مصري (EGP)</option>
+                                    <option value="usd">🇺🇸 دولار أمريكي (USD)</option>
+                                    <option value="eur">🇪🇺 يورو أوروبي (EUR)</option>
+                                </select>
 
-                            <label id="exchange-rate-label"
-                                style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">سعر
-                                الصرف:</label>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                <input type="number" id="exchange-rate" placeholder="1 وحدة = ? جنيه" step="0.01"
-                                    style="flex: 1; height: 44px !important; font-size: 1em !important; text-align: center !important; border-radius: 12px !important; margin: 0 !important; padding: 0 10px !important;">
-                                <button id="fetch-rate-btn" class="btn"
-                                    style="width: 44px !important; height: 44px !important; min-width: 44px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; border-radius: 12px !important; background: var(--gold-gradient-simple); color: #000; margin: 0 !important; border: none;"><i
-                                        class="fas fa-sync-alt"></i></button>
+                                <label id="exchange-rate-label"
+                                    style="display:block; margin-bottom:8px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">سعر التحويل والصرف:</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                    <input type="number" id="exchange-rate" placeholder="1 وحدة = ? جنيه" step="0.01"
+                                        style="flex: 1; height: 46px !important; font-size: 1.05em !important; text-align: center !important; font-weight: 900 !important;">
+                                    <button id="fetch-rate-btn" class="btn"
+                                        style="width: 46px !important; height: 46px !important; min-width: 46px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; border-radius: 12px !important; background: var(--gold-gradient-simple); color: #000; margin: 0 !important; border: none; font-size: 1.1em;"
+                                        title="تحديث سعر الصرف فوري"><i class="fas fa-sync-alt"></i></button>
+                                </div>
+                                <div style="text-align: center; padding-top: 4px;">
+                                    <a href="https://ta3weem.com" target="_blank"
+                                        style="color: var(--primary-color); text-decoration: none; font-size: 0.88em; font-weight: 850; display: inline-flex; align-items: center; gap: 6px;"><i
+                                            class="fas fa-external-link-alt"></i> متابعة أسعار الصرف الحية (Ta3weem)</a>
+                                </div>
                             </div>
-                            <div style="text-align: center;">
-                                <a href="https://ta3weem.com" target="_blank"
-                                    style="color: var(--text-muted); text-decoration: none; font-size: 0.85em;"><i
-                                        class="fas fa-external-link-alt"></i> متابعة الأسعار (Ta3weem)</a>
+                        </details>
+
+                        <!-- تخصيص وإخفاء الفئات النقدية -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-eye-slash"></i> <span>تخصيص الفئات المعروضة</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <p style="font-size: 0.82em; color: var(--text-muted); margin: 0 0 12px; font-weight: 750;">إخفاء فئات الفكة والمعدنية لتوفير المساحة وسرعة الإدخال:</p>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 12px 14px; background: var(--input-bg); border-radius: 12px; border: 1.5px solid var(--border-color);">
+                                        <span style="color: var(--text-color); font-weight: 850; font-size: 0.9em;"><i class="fas fa-coins" style="color: #F59E0B; margin-left: 6px;"></i> إخفاء فئة 1 جنيه</span>
+                                        <input type="checkbox" id="hide-coin-1" style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;" onchange="AppStorage.setItem('hide_coin_1', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
+                                    </label>
+                                    <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 12px 14px; background: var(--input-bg); border-radius: 12px; border: 1.5px solid var(--border-color);">
+                                        <span style="color: var(--text-color); font-weight: 850; font-size: 0.9em;"><i class="fas fa-circle" style="color: #64748B; margin-left: 6px; font-size: 0.85em;"></i> إخفاء فئة 0.50 جنيه (نص)</span>
+                                        <input type="checkbox" id="hide-coin-05" style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;" onchange="AppStorage.setItem('hide_coin_05', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
+                                    </label>
+                                    <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 12px 14px; background: var(--input-bg); border-radius: 12px; border: 1.5px solid var(--border-color);">
+                                        <span style="color: var(--text-color); font-weight: 850; font-size: 0.9em;"><i class="fas fa-circle" style="color: #94A3B8; margin-left: 6px; font-size: 0.7em;"></i> إخفاء فئة 0.25 جنيه (ربع)</span>
+                                        <input type="checkbox" id="hide-coin-025" style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;" onchange="AppStorage.setItem('hide_coin_025', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
+                                    </label>
+                                </div>
                             </div>
-                        </div>
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-eye-slash"></i> إخفاء الفئات (لتوفير المساحة)</div>
-                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-bottom: 1px solid var(--shadow-light);">
-                                <input type="checkbox" id="hide-coin-1" style="width: auto; accent-color: var(--primary-color);" onchange="AppStorage.setItem('hide_coin_1', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
-                                <span style="color: var(--text-muted); font-size: 0.85em;">إخفاء فئة 1 جنيه</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-bottom: 1px solid var(--shadow-light);">
-                                <input type="checkbox" id="hide-coin-05" style="width: auto; accent-color: var(--primary-color);" onchange="AppStorage.setItem('hide_coin_05', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
-                                <span style="color: var(--text-muted); font-size: 0.85em;">إخفاء فئة 0.50 جنيه (نص)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px;">
-                                <input type="checkbox" id="hide-coin-025" style="width: auto; accent-color: var(--primary-color);" onchange="AppStorage.setItem('hide_coin_025', this.checked.toString()); notesListElement.innerHTML=''; createUI(); loadInputs(); calculateTotal();">
-                                <span style="color: var(--text-muted); font-size: 0.85em;">إخفاء فئة 0.25 جنيه (ربع)</span>
-                            </label>
-                        </div>
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-balance-scale"></i> مطابقة العهدة</div>
-                            <label id="system-sales-label"
-                                style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">مبيعات
-                                النظام (العهدة):</label>
-                            <input type="number" id="system-total-input" placeholder="للمطابقة" style="width: 100%;">
-                        </div>
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-database"></i> إدارة البيانات</div>
-                            <div class="general-grid">
-                                <button id="export-btn" class="action-btn-small"><i class="fas fa-share-alt"
-                                        style="color: #4CAF50;"></i> مشاركة نسخة احتياطية</button>
-                                <button id="import-btn" class="action-btn-small"><i class="fas fa-upload"
-                                        style="color: var(--primary-color);"></i> استيراد بيانات</button>
+                        </details>
+
+                        <!-- مطابقة العهدة ومبيعات السيستم -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-balance-scale"></i> <span>مطابقة العهدة ومبيعات السيستم</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <div class="switch-container" style="margin-bottom: 14px;">
+                                    <span style="color: var(--text-color); font-weight: 850; font-size: 0.95em;"><i class="fas fa-eye" style="color: var(--primary-color); margin-left: 6px;"></i> إظهار الكارت بالشاشة الرئيسية</span>
+                                    <label class="royal-switch">
+                                        <input type="checkbox" id="show-custody-card-toggle-data" onchange="toggleCustodyCardVisibility(this.checked)">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label id="system-sales-label"
+                                        style="display:block; margin-bottom:8px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">مبيعات النظام الافتراضية (العهدة):</label>
+                                    <input type="number" id="system-total-input" placeholder="أدخل مبلغ العهدة للمطابقة" style="width: 100%;">
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </details>
+
+                        <!-- إدارة البيانات والنسخ الاحتياطي -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-database"></i> <span>إدارة البيانات والنسخ الاحتياطي</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <p style="font-size: 0.82em; color: var(--text-muted); margin: 0 0 12px; font-weight: 750;">تأمين سجلاتك وبياناتك المالية عبر مشاركة أو استيراد ملف النسخة الاحتياطية:</p>
+                                <div class="general-grid">
+                                    <button id="export-btn" class="action-btn-small"><i class="fas fa-share-alt"
+                                            style="color: #10B981;"></i> مشاركة نسخة احتياطية</button>
+                                    <button id="import-btn" class="action-btn-small"><i class="fas fa-upload"
+                                            style="color: var(--primary-color);"></i> استيراد بيانات</button>
+                                </div>
+                            </div>
+                        </details>
+                    </div><!-- نهاية tab-data -->
 
                     <!-- تبويب الأمان -->
                     <div id="tab-security" class="tab-pane">
-                        <div class="neu-card">
-                            <div class="neu-card-title"><i class="fas fa-shield-alt"></i> حماية التطبيق</div>
-                            <label
-                                style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">كلمة
-                                المرور الجديدة:</label>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; width: 100%;">
-                                <div style="position: relative; flex: 1; min-width: 0;">
-                                    <input type="password" id="password-input" placeholder="أدخل كلمة المرور"
-                                        style="width: 100%; padding-left: 40px; box-sizing: border-box;">
-                                    <i id="toggle-password-eye" class="fas fa-eye"
-                                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; transition: color 0.3s;"></i>
-                                </div>
-                                <button id="set-password-btn" class="btn"
-                                     style="flex: 0 0 auto; width: 90px !important; height: 44px; padding: 0; background: var(--gold-gradient-simple); color: #000; border: none; font-weight: 800; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0;">تعيين</button>
-                            </div>
-                            <label
-                                style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; background: var(--shadow-light); border-radius: 10px; border: 1px solid var(--border-color);">
-                                <input type="checkbox" id="enable-password" style="width: auto; accent-color: var(--primary-color);">
-                                <span id="password-toggle-text" style="color: var(--primary-color); font-weight: bold;">تفعيل حماية كلمة المرور</span>
-                            </label>
-                        </div>
-
-                        <div class="neu-card" style="margin-top: 15px;">
-                            <div class="neu-card-title"><i class="fas fa-user-lock"></i> خيارات الأمان الذكية</div>
-                            <label
-                                style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-bottom: 1px solid var(--shadow-light);">
-                                <input type="checkbox" id="lock-on-hide" style="width: auto; accent-color: var(--primary-color);">
-                                <span style="color: var(--text-muted); font-size: 0.85em;">قفل التطبيق تلقائياً عند الخروج</span>
-                            </label>
-                            <div style="padding: 10px;">
+                        <!-- حماية التطبيق بكلمة مرور -->
+                        <details class="neu-card settings-accordion" open>
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-shield-alt"></i> <span>حماية التطبيق بكلمة مرور</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
                                 <label
-                                    style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.8em;">قفل تلقائي بعد فترة خمول:</label>
-                                <select id="auto-lock-timer"
-                                    style="width: 100%; font-size: 0.85em; background: var(--input-bg); color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 5px;">
-                                    <option value="0">مستمر دائماً</option>
-                                    <option value="1">دقيقة واحدة</option>
-                                    <option value="5">5 دقائق</option>
-                                    <option value="10">10 دقائق</option>
-                                </select>
+                                    style="display:block; margin-bottom:8px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">تعيين كلمة المرور الجديدة:</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; width: 100%;">
+                                    <div style="position: relative; flex: 1; min-width: 0;">
+                                        <input type="password" id="password-input" placeholder="أدخل كلمة المرور"
+                                            style="width: 100%; padding-left: 40px; box-sizing: border-box;">
+                                        <i id="toggle-password-eye" class="fas fa-eye"
+                                            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; font-size: 1.05em; transition: color 0.3s;"></i>
+                                    </div>
+                                    <button id="set-password-btn" class="btn"
+                                         style="flex: 0 0 auto; width: 95px !important; height: 46px; padding: 0; background: var(--gold-gradient-simple); color: #000; border: none; font-weight: 900; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0;">تعيين</button>
+                                </div>
+                                <label
+                                    style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 14px; background: var(--input-bg); border-radius: 12px; border: 1.5px solid var(--border-color);">
+                                    <input type="checkbox" id="enable-password" style="width: 20px; height: 20px; accent-color: var(--primary-color);">
+                                    <span id="password-toggle-text" style="color: var(--primary-color); font-weight: 900; font-size: 0.95em;">تفعيل حماية كلمة المرور عند فتح التطبيق</span>
+                                </label>
                             </div>
-                        </div>
-                    </div>
+                        </details>
+
+                        <!-- خيارات الأمان والقفل الذكي -->
+                        <details class="neu-card settings-accordion">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-user-lock"></i> <span>خيارات الأمان الذكية</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <label
+                                    style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 12px 14px; background: var(--input-bg); border-radius: 12px; border: 1.5px solid var(--border-color); margin-bottom: 12px;">
+                                    <span style="color: var(--text-color); font-weight: 850; font-size: 0.9em;"><i class="fas fa-sign-out-alt" style="color: var(--primary-color); margin-left: 6px;"></i> قفل التطبيق تلقائياً عند الخروج</span>
+                                    <input type="checkbox" id="lock-on-hide" style="width: 20px; height: 20px; accent-color: var(--primary-color);">
+                                </label>
+                                <div>
+                                    <label
+                                        style="display:block; margin-bottom:8px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">قفل تلقائي بعد فترة خمول:</label>
+                                    <select id="auto-lock-timer" style="width: 100%;">
+                                        <option value="0">مستمر دائماً (بدون قفل)</option>
+                                        <option value="1">بعد دقيقة واحدة</option>
+                                        <option value="5">بعد 5 دقائق</option>
+                                        <option value="10">بعد 10 دقائق</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </details>
+                    </div><!-- نهاية tab-security -->
 
                     <!-- تبويب حول البرنامج -->
                     <div id="tab-about" class="tab-pane">
@@ -499,13 +649,13 @@
                         </div>
 
                         <!-- سجل الإصدارات والتاريخ الكامل للتطبيق (Changelog History - Collapsible Accordions) -->
-                        <div class="neu-card" style="margin-top: 15px; padding: 16px; text-align: right;">
-                            <div class="neu-card-title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                <span><i class="fas fa-history" style="color: var(--primary-color);"></i> 📜 سجل وتاريخ الإصدارات</span>
-                                <span style="font-size: 0.75em; background: rgba(255,51,75,0.12); color: var(--primary-color); padding: 3px 8px; border-radius: 8px; font-weight: 800;">Changelog</span>
-                            </div>
-
-                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88em;">
+                        <details class="neu-card settings-accordion" style="margin-top: 15px; text-align: right;">
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-history" style="color: var(--primary-color);"></i> <span>سجل وتاريخ الإصدارات (Changelog)</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88em;">
                                 
                                 <!-- الإصدار الحالي 5.3.0 -->
                                 <details style="background: var(--input-bg); border-right: 4px solid #10B981; border-radius: 12px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--border-color);" open>
@@ -690,49 +840,51 @@
                                     </div>
                                 </details>
 
+                                </div>
                             </div>
-                        </div>
+                        </details>
 
                         <div class="neu-card"
-                            style="margin-top: 15px; text-align: center; border: 1px dashed var(--border-color); padding: 15px;">
-                            <div style="font-size: 0.9em; font-weight: bold; color: var(--primary-color);">تم التطوير بكل ❤️ بواسطة عمرو إيهاب</div>
-                            <div style="font-size: 0.75em; opacity: 0.6; margin-top: 4px;">جميع الحقوق محفوظة © 2026</div>
-                            <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px;">
+                            style="margin-top: 15px; text-align: center; border: 1.5px dashed var(--border-color); padding: 18px; border-radius: 18px;">
+                            <div style="font-size: 0.95em; font-weight: 900; color: var(--primary-color);">تم التطوير بكل ❤️ بواسطة عمرو إيهاب</div>
+                            <div style="font-size: 0.8em; font-weight: 750; color: var(--text-muted); margin-top: 4px;">جميع الحقوق محفوظة © 2026</div>
+                            <div style="margin-top: 12px; display: flex; justify-content: center; gap: 16px;">
                                 <a href="https://wa.me/+201006825905" target="_blank"
-                                    style="color: #25D366; font-size: 1.2em;"><i class="fab fa-whatsapp"></i></a>
-                                <a href="mailto:ehabamr062@gmail.com" style="color: #EA4335; font-size: 1.2em;"><i
+                                    style="color: #25D366; font-size: 1.35em;" title="تواصل عبر واتساب"><i class="fab fa-whatsapp"></i></a>
+                                <a href="mailto:ehabamr062@gmail.com" style="color: #EA4335; font-size: 1.35em;" title="تواصل عبر البريد الإلكتروني"><i
                                         class="fas fa-envelope"></i></a>
                             </div>
                         </div>
-                    </div>
+                    </div><!-- نهاية tab-about -->
 
-                <!-- تبويب الملاحظات (Feedback) -->
-                <div id="tab-feedback" class="tab-pane">
-                    <div class="neu-card">
-                        <div class="neu-card-title" style="justify-content: center;"><i class="fas fa-comment-dots"></i>
-                            أرسل ملاحظاتك</div>
-                        <p
-                            style="font-size: 0.9em; color: var(--text-muted); text-align: center; margin-bottom: 15px;">
-                            رأيك يهمنا! ساعدنا في تحسين التطبيق بإرسال اقتراحاتك.
-                        </p>
-                        <label
-                            style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">نوع
-                            الرسالة:</label>
-                        <select id="feedback-type" style="width: 100%; margin-bottom: 12px;">
-                            <option value="suggestion">💡 اقتراح ميزة جديدة</option>
-                            <option value="bug">🐛 إبلاغ عن مشكلة</option>
-                            <option value="other">📝 أخرى</option>
-                        </select>
-                        <label
-                            style="display:block; margin-bottom:6px; color: var(--text-muted); font-size: 0.85em;">الرسالة:</label>
-                        <textarea id="feedback-text" rows="4" placeholder="اكتب تفاصيل ملاحظاتك هنا..."
-                            style="width: 100%; resize: none; margin-bottom: 12px;"></textarea>
-                        <button id="send-feedback-btn" class="btn"
-                            style="width: 100%; background: var(--gold-gradient-simple); color: #000; font-weight: 800; border: none; padding: 14px;"><i
-                                class="fas fa-paper-plane"></i> إرسال الملاحظة</button>
-                    </div>
-                </div>
-
+                    <!-- تبويب الملاحظات (Feedback) -->
+                    <div id="tab-feedback" class="tab-pane">
+                        <details class="neu-card settings-accordion" open>
+                            <summary class="neu-card-title">
+                                <span class="title-wrap"><i class="fas fa-comment-dots" style="color: var(--primary-color);"></i> <span>إرسال الاقتراحات والملاحظات</span></span>
+                                <i class="fas fa-chevron-down accordion-arrow"></i>
+                            </summary>
+                            <div class="accordion-content">
+                                <p style="font-size: 0.84em; color: var(--text-muted); text-align: center; margin-bottom: 15px; font-weight: 750;">
+                                    رأيك يهمنا دائماً! ساعدنا في تحسين وتطوير التطبيق عبر إرسال اقتراحاتك أو الإبلاغ عن أي ملاحظة.
+                                </p>
+                                <label style="display:block; margin-bottom:6px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">نوع الرسالة:</label>
+                                <select id="feedback-type" style="width: 100%; margin-bottom: 14px;">
+                                    <option value="suggestion">💡 اقتراح ميزة جديدة</option>
+                                    <option value="bug">🐛 إبلاغ عن مشكلة</option>
+                                    <option value="other">📝 أخرى</option>
+                                </select>
+                                <label style="display:block; margin-bottom:6px; color: var(--text-color); font-size: 0.88em; font-weight: 850;">نص الرسالة والملاحظات:</label>
+                                <textarea id="feedback-text" rows="4" placeholder="اكتب تفاصيل ملاحظاتك أو اقتراحك هنا..."
+                                    style="width: 100%; resize: none; margin-bottom: 14px;"></textarea>
+                                <button id="send-feedback-btn" class="btn"
+                                    style="width: 100%; background: var(--gold-gradient-simple); color: #000; font-weight: 900; border: none; padding: 14px; border-radius: 14px; font-size: 1em; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <i class="fas fa-paper-plane"></i> إرسال الملاحظة
+                                </button>
+                            </div>
+                        </details>
+                    </div><!-- نهاية tab-feedback -->
+                </div><!-- نهاية settings-menu -->
             </div><!-- نهاية المحتوى القابل للتمرير -->
         </div><!-- نهاية modal-content -->
     </div><!-- نهاية settings-modal -->
@@ -796,6 +948,22 @@
                     <button class="calc-btn action" onclick="mathCalc('=')"
                         style="background: linear-gradient(135deg, #10B981, #059669); color: #fff; font-weight: 900; border-radius: 16px; height: 56px; font-size: 1.4em; border: none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); cursor: pointer; transition: transform 0.1s;">=</button>
                 </div>
+
+                <!-- شريط تحويل الناتج الفوري للمحفظة والعهدة -->
+                <div class="math-transfer-bar">
+                    <span class="math-transfer-title"><i class="fas fa-bolt"></i> ترحيل الناتج مباشرة إلى:</span>
+                    <div class="math-transfer-grid">
+                        <button type="button" class="btn math-transfer-btn vodafone" onclick="transferMathResult('vodafone')" title="تحويل الناتج إلى محفظة فودافون كاش">
+                            <i class="fas fa-mobile-alt"></i> فودافون كاش
+                        </button>
+                        <button type="button" class="btn math-transfer-btn instapay" onclick="transferMathResult('instapay')" title="تحويل الناتج إلى محفظة إنستا باي">
+                            <i class="fas fa-university"></i> إنستا باي
+                        </button>
+                        <button type="button" class="btn math-transfer-btn target" onclick="transferMathResult('target')" title="تحويل الناتج إلى مبيعات النظام (العهدة)">
+                            <i class="fas fa-balance-scale"></i> مبيعات العهدة
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- سجل العمليات الحسابية -->
@@ -816,6 +984,7 @@
             </div>
         </div>
     </div>
+    </div><!-- نهاية container الآلة الحاسبة -->
 
     <!-- لوحة الأرقام السريعة العائمة للهواتف (Quick Numpad Bottom Sheet) -->
     <div id="quick-numpad-overlay" class="numpad-overlay" style="display: none;">
@@ -964,7 +1133,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=5.3.0"></script>
+    <script src="script.js?v=5.4.0"></script>
 </body>
 
 </html>

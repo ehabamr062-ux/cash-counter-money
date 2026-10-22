@@ -1,5 +1,5 @@
 // ===== رقم الإصدار ونظام الـ Cache - غيّره مع كل تحديث رئيسي =====
-const APP_VERSION = '5.3.0';
+const APP_VERSION = '5.4.1';
 const CACHE_NAME = `cash-calc-v${APP_VERSION}`;
 
 const STATIC_ASSETS = [
@@ -30,12 +30,22 @@ const STATIC_ASSETS = [
     './icons/icon-384.png?v=' + APP_VERSION,
     './icons/icon-512.png',
     './icons/icon-512.png?v=' + APP_VERSION,
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
-    'https://cdn.jsdelivr.net/npm/sweetalert2@11',
-    'https://html2canvas.hertzen.com/dist/html2canvas.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-    'https://cdn.jsdelivr.net/npm/chart.js',
-    'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap'
+    './libs/cairo.css',
+    './libs/font-awesome.min.css',
+    './libs/sweetalert2.all.min.js',
+    './libs/html2canvas.min.js',
+    './libs/jspdf.umd.min.js',
+    './libs/chart.umd.min.js',
+    './libs/email.min.js',
+    './webfonts/fa-solid-900.woff2',
+    './webfonts/fa-solid-900.ttf',
+    './webfonts/fa-regular-400.woff2',
+    './webfonts/fa-brands-400.woff2',
+    './webfonts/cairo-400.ttf',
+    './webfonts/cairo-600.ttf',
+    './webfonts/cairo-700.ttf',
+    './webfonts/cairo-800.ttf',
+    './webfonts/cairo-900.ttf'
 ];
 
 // ===== تثبيت Service Worker - يفعّل ويخزن كافة الأصول أوفلاين 100% =====

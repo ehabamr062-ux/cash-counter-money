@@ -46,14 +46,13 @@ window.AppStorage = {
                             // دمج البيانات: كاش وقاعدة بيانات
                             if (this.cache[cursor.key] === undefined || this.cache[cursor.key] === null) {
                                 this.cache[cursor.key] = cursor.value;
-                                try { localStorage.setItem(cursor.key, cursor.value); } catch (err) {}
+                                // عدم كتابة السجلات الكبيرة في localStorage لتفادي خطأ QuotaExceededError
+                                if (cursor.key !== 'cashCalculatorHistory' && cursor.key !== 'bayan_last_auto_backup' && cursor.key !== 'bayan_exit_auto_backup') {
+                                    try { localStorage.setItem(cursor.key, cursor.value); } catch (err) {}
+                                }
                             }
                             cursor.continue();
                         } else {
-                            // مزامنة أي بيانات جديدة من الـ cache إلى الـ IDB
-                            for (const key in this.cache) {
-                                this.setItem(key, this.cache[key]);
-                            }
                             resolve();
                         }
                     };
@@ -81,10 +80,22 @@ window.AppStorage = {
         return null;
     },
 
-    // حفظ فوري في الذاكرة + localStorage + كتابة آمنة في IndexedDB
+    // حفظ فوري في الذاكرة + كتابة آمنة ومحمية الكوتا في localStorage و IndexedDB
     setItem(key, value) {
         this.cache[key] = value;
-        try { localStorage.setItem(key, value); } catch (e) {}
+        
+        // حماية كوتا localStorage من الامتلاء مع السجلات الكبيرة لسنوات طويلة
+        const isLargeKey = key === 'cashCalculatorHistory' || key === 'bayan_last_auto_backup' || key === 'bayan_exit_auto_backup';
+        if (!isLargeKey) {
+            try { localStorage.setItem(key, value); } catch (e) {}
+        } else {
+            try {
+                // حفظ نسخة إضافية في localStorage فقط إذا كانت خفيفة وأقل من 500KB
+                if (typeof value === 'string' && value.length < 500000) {
+                    localStorage.setItem(key, value);
+                }
+            } catch (e) {}
+        }
 
         if (this.db) {
             this.writeQueue[key] = value;
@@ -511,7 +522,16 @@ window.AppStorage.initSync();
             });
         }
 
+        let saveInputsTimer = null;
+        function debouncedSaveInputs(delay = 400) {
+            clearTimeout(saveInputsTimer);
+            saveInputsTimer = setTimeout(() => {
+                saveInputs();
+            }, delay);
+        }
+
         function saveInputs() {
+            clearTimeout(saveInputsTimer);
             if (AppStorage.getItem('autosaveEnabled') === 'false') return;
 
             const inputsData = {};
@@ -524,7 +544,7 @@ window.AppStorage.initSync();
             inputsData['vodafone'] = vCash;
             inputsData['instapay'] = iPay;
             
-            // حفظ فوري في نفس اللحظة بدون أي تأخير 0ms
+            // حفظ فوري في التخزين
             AppStorage.setItem('cashCalculatorInputs', JSON.stringify(inputsData));
 
             // إظهار مؤشر الحفظ التلقائي
@@ -662,6 +682,222 @@ window.AppStorage.initSync();
             document.getElementById('entry-date').value = localDate;
         }
 
+        // ==========================================
+        // 🔤 محرك التفقيط المالي باللغة العربية (Arabic Financial Tafqeet)
+        // ==========================================
+        function numberToArabicWords(number) {
+            if (isNaN(number) || number === 0) return 'صفر';
+            number = Math.floor(Math.abs(number));
+
+            const ones = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
+            const tens = ['', 'عشرة', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+            const teens = ['عشرة', 'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر'];
+            const hundreds = ['', 'مائة', 'مائتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة'];
+
+            function convertGroup(n) {
+                let h = Math.floor(n / 100);
+                let rem = n % 100;
+                let parts = [];
+
+                if (h > 0) parts.push(hundreds[h]);
+
+                if (rem > 0) {
+                    if (rem < 10) {
+                        parts.push(ones[rem]);
+                    } else if (rem >= 10 && rem < 20) {
+                        parts.push(teens[rem - 10]);
+                    } else {
+                        let u = rem % 10;
+                        let t = Math.floor(rem / 10);
+                        if (u > 0) {
+                            parts.push(ones[u] + ' و' + tens[t]);
+                        } else {
+                            parts.push(tens[t]);
+                        }
+                    }
+                }
+                return parts.join(' و');
+            }
+
+            const groups = [];
+            let temp = number;
+            while (temp > 0) {
+                groups.push(temp % 1000);
+                temp = Math.floor(temp / 1000);
+            }
+
+            const scaleNames = [
+                { singular: '', dual: '', plural: '', accusative: '' },
+                { singular: 'ألف', dual: 'ألفان', plural: 'آلاف', accusative: 'ألفاً' },
+                { singular: 'مليون', dual: 'مليونان', plural: 'ملايين', accusative: 'مليوناً' },
+                { singular: 'مليار', dual: 'ملياران', plural: 'مليارات', accusative: 'ملياراً' }
+            ];
+
+            let resultParts = [];
+            for (let i = groups.length - 1; i >= 0; i--) {
+                const g = groups[i];
+                if (g === 0) continue;
+
+                if (i === 0) {
+                    resultParts.push(convertGroup(g));
+                } else {
+                    const scale = scaleNames[i];
+                    if (g === 1) {
+                        resultParts.push(scale.singular);
+                    } else if (g === 2) {
+                        resultParts.push(scale.dual);
+                    } else if (g >= 3 && g <= 10) {
+                        resultParts.push(convertGroup(g) + ' ' + scale.plural);
+                    } else {
+                        resultParts.push(convertGroup(g) + ' ' + scale.accusative);
+                    }
+                }
+            }
+
+            return resultParts.join(' و');
+        }
+
+        window.tafqeet = function (amount, currencyCode = 'egp') {
+            const num = parseFloat(amount);
+            if (isNaN(num) || num === 0) {
+                const curName = currencyCode === 'usd' ? 'دولار أمريكي' : (currencyCode === 'eur' ? 'يورو' : 'جنيه مصري');
+                return `فقط صفر ${curName} لا غير`;
+            }
+
+            const isNegative = num < 0;
+            const absVal = Math.abs(num);
+            const whole = Math.floor(absVal);
+            const fraction = Math.round((absVal - whole) * 100);
+
+            let mainUnit = 'جنيه مصري';
+            let subUnit = 'قرش';
+            if (currencyCode === 'usd') {
+                mainUnit = 'دولار أمريكي';
+                subUnit = 'سنت';
+            } else if (currencyCode === 'eur') {
+                mainUnit = 'يورو';
+                subUnit = 'سنت';
+            }
+
+            let wholeText = '';
+            if (whole > 0) {
+                const words = numberToArabicWords(whole);
+                const lastTwo = whole % 100;
+                if (currencyCode === 'egp') {
+                    if (whole === 1) wholeText = 'جنيه مصري واحد';
+                    else if (whole === 2) wholeText = 'جنيهان مصريان';
+                    else if (lastTwo >= 3 && lastTwo <= 10 && whole <= 10) wholeText = `${words} جنيهات مصرية`;
+                    else if (lastTwo === 0 && whole >= 100) wholeText = `${words} جنيه مصري`;
+                    else wholeText = `${words} جنيهاً مصرياً`;
+                } else if (currencyCode === 'usd') {
+                    if (whole === 1) wholeText = 'دولار أمريكي واحد';
+                    else if (whole === 2) wholeText = 'دولاران أمريكيان';
+                    else if (lastTwo >= 3 && lastTwo <= 10 && whole <= 10) wholeText = `${words} دولارات أمريكية`;
+                    else if (lastTwo === 0 && whole >= 100) wholeText = `${words} دولار أمريكي`;
+                    else wholeText = `${words} دولاراً أمريكياً`;
+                } else {
+                    wholeText = `${words} ${mainUnit}`;
+                }
+            }
+
+            let fracText = '';
+            if (fraction > 0) {
+                const fracWords = numberToArabicWords(fraction);
+                if (fraction === 1) fracText = `${subUnit} واحد`;
+                else if (fraction === 2) fracText = `${subUnit}ان`;
+                else if (fraction >= 3 && fraction <= 10) fracText = `${fracWords} ${subUnit === 'قرش' ? 'قروش' : 'سنتات'}`;
+                else fracText = `${fracWords} ${subUnit}اً`;
+            }
+
+            let output = '';
+            if (wholeText && fracText) {
+                output = `${wholeText} و${fracText}`;
+            } else if (wholeText) {
+                output = wholeText;
+            } else if (fracText) {
+                output = fracText;
+            }
+
+            return `${isNegative ? 'سالب ' : ''}فقط ${output} لا غير`;
+        };
+
+        function updateTafqeet(amount) {
+            const tafqeetEl = document.getElementById('tafqeet-display');
+            if (!tafqeetEl) return;
+            const curCode = document.getElementById('currency-select')?.value || 'egp';
+            tafqeetEl.textContent = window.tafqeet(amount, curCode);
+        }
+
+        // ==========================================
+        // ⚖️ محرك مطابقة العهدة ومبيعات النظام (Custody Reconciliation Engine)
+        // ==========================================
+        window.clearCustodyTarget = function () {
+            const quickInp = document.getElementById('quick-system-target');
+            const sysInp = document.getElementById('system-total-input');
+            if (quickInp) quickInp.value = '';
+            if (sysInp) sysInp.value = '';
+            AppStorage.removeItem('systemTotal');
+            calculateTotal();
+            playSound('trash');
+        };
+
+        function updateCustodyReconciliation(actualGrandTotal) {
+            const quickInp = document.getElementById('quick-system-target');
+            const badge = document.getElementById('custody-badge');
+            const targetValEl = document.getElementById('custody-target-val');
+            const actualValEl = document.getElementById('custody-actual-val');
+            const diffLabelEl = document.getElementById('custody-diff-label');
+            const diffValEl = document.getElementById('custody-diff-val');
+
+            if (!badge || !targetValEl || !actualValEl || !diffValEl) return;
+
+            const curSymbol = document.getElementById('currency-label')?.textContent || 'ج.م';
+            let target = parseFloat(quickInp?.value);
+            if (isNaN(target)) {
+                target = parseFloat(AppStorage.getItem('systemTotal'));
+                if (!isNaN(target) && quickInp && !quickInp.value) {
+                    quickInp.value = target;
+                }
+            }
+
+            actualValEl.textContent = `${actualGrandTotal.toFixed(2)} ${curSymbol}`;
+
+            if (isNaN(target) || target <= 0) {
+                badge.className = 'custody-badge neutral';
+                badge.textContent = 'أدخل مبيعات النظام';
+                targetValEl.textContent = `0.00 ${curSymbol}`;
+                diffLabelEl.textContent = 'الفارق:';
+                diffValEl.textContent = `0.00 ${curSymbol}`;
+                diffValEl.style.color = 'var(--text-color)';
+                return;
+            }
+
+            targetValEl.textContent = `${target.toFixed(2)} ${curSymbol}`;
+            const diff = actualGrandTotal - target;
+
+            badge.classList.remove('neutral', 'match', 'surplus', 'deficit');
+
+            if (Math.abs(diff) < 0.001) {
+                badge.classList.add('match');
+                badge.innerHTML = 'مطابقة تامة ✅';
+                diffLabelEl.textContent = 'حالة المطابقة:';
+                diffValEl.textContent = `0.00 ${curSymbol} (مطابق)`;
+                diffValEl.style.color = '#10B981';
+            } else if (diff > 0) {
+                badge.classList.add('surplus');
+                badge.innerHTML = `فائض بالدرج (+${diff.toFixed(2)}) 🟢`;
+                diffLabelEl.textContent = 'زيادة (فائض):';
+                diffValEl.textContent = `+${diff.toFixed(2)} ${curSymbol}`;
+                diffValEl.style.color = '#0284C7';
+            } else {
+                badge.classList.add('deficit');
+                badge.innerHTML = `عجز بالدرج (${diff.toFixed(2)}) 🔴`;
+                diffLabelEl.textContent = 'عجز (نقص):';
+                diffValEl.textContent = `${diff.toFixed(2)} ${curSymbol}`;
+                diffValEl.style.color = '#EF4444';
+            }
+        }
+
         function calculateTotal() {
             let physicalTotal = 0;
             let totalPapers = 0;
@@ -713,8 +949,14 @@ window.AppStorage.initSync();
                 document.getElementById('equivalent').textContent = '';
             }
 
-            // حفظ المدخلات تلقائيًا
-            saveInputs();
+            // تحديث التفقيط المالي بالعربية
+            updateTafqeet(grandTotal);
+
+            // تحديث مطابقة العهدة المباشرة
+            updateCustodyReconciliation(grandTotal);
+
+            // حفظ المدخلات تلقائيًا بتأخير ذكي لمنع ثقل الكتابة وتوفير المعالج
+            debouncedSaveInputs(400);
 
             return grandTotal;
         }
@@ -839,11 +1081,24 @@ window.AppStorage.initSync();
             const now = new Date();
             const localDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
             document.getElementById('entry-date').value = localDate;
-            document.getElementById('date-filter-input').value = localDate;
             calculateTotal();
 
             document.getElementById('search-input').value = '';
-            loadHistory(localDate);
+
+            let allHistory = [];
+            try { allHistory = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]'); } catch (e) {}
+            const hasToday = allHistory.some(item => item.simpleDate === localDate);
+
+            if (hasToday) {
+                document.getElementById('date-filter-input').value = localDate;
+                loadHistory(localDate);
+            } else if (allHistory.length > 0) {
+                document.getElementById('date-filter-input').value = '';
+                loadHistory('ALL');
+            } else {
+                document.getElementById('date-filter-input').value = localDate;
+                loadHistory(localDate);
+            }
         }
 
         // تم استعادة وظائف السجل بالكامل مع إضافة البحث وعرض آخر عملية
@@ -854,6 +1109,42 @@ window.AppStorage.initSync();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+
+        // نظام العرض التدريجي بالدفعات (Pagination / Chunking) لمنع تجمد الشاشة مع السجلات الضخمة
+        const HISTORY_PAGE_SIZE = 25;
+        let activeHistoryList = [];
+        let renderedHistoryCount = 0;
+
+        function renderNextHistoryChunk() {
+            const existingBtn = document.getElementById('load-more-history-li');
+            if (existingBtn) existingBtn.remove();
+
+            const start = renderedHistoryCount;
+            const end = Math.min(start + HISTORY_PAGE_SIZE, activeHistoryList.length);
+            const fragment = document.createDocumentFragment();
+
+            for (let i = start; i < end; i++) {
+                const item = activeHistoryList[i];
+                fragment.appendChild(renderHistoryItem(item, false));
+            }
+
+            historyList.appendChild(fragment);
+            renderedHistoryCount = end;
+
+            // إضافة زر عرض المزيد الأنيق في حال وجود متبقي
+            if (renderedHistoryCount < activeHistoryList.length) {
+                const remaining = activeHistoryList.length - renderedHistoryCount;
+                const loadMoreLi = document.createElement('li');
+                loadMoreLi.id = 'load-more-history-li';
+                loadMoreLi.style.cssText = 'text-align: center; padding: 14px 10px; background: transparent; box-shadow: none; border: none; list-style: none;';
+                loadMoreLi.innerHTML = `
+                    <button id="load-more-history-btn" class="btn" style="width: auto; min-width: 180px; padding: 10px 22px; margin: 0 auto; font-size: 0.9em; font-weight: 800; background: var(--card-background); border: 1.5px solid var(--border-color); color: var(--primary-color); border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.06); transition: all 0.2s ease;">
+                        <i class="fas fa-chevron-down" style="margin-left: 6px;"></i> عرض المزيد (${remaining} متبقي)
+                    </button>
+                `;
+                historyList.appendChild(loadMoreLi);
+            }
         }
 
         // دالة تحميل وسجل البيانات اليومية المتكاملة
@@ -918,23 +1209,48 @@ window.AppStorage.initSync();
             const summaryDiv = document.getElementById('history-summary');
             const summarySpan = document.getElementById('history-total-sum');
 
-            // 4. إذا لم توجد سجلات في التاريخ المحدد، عرض رسالة "لا توجد بيانات لهذا التاريخ"
+            // 4. إذا لم توجد سجلات في التاريخ المحدد، عرض بطاقة أنيقة واحترافية بدلاً من النص الجاف
             if (historyToDisplay.length === 0) {
-                const noDataMessage = searchTerm ? 'لا توجد بيانات تطابق معايير البحث.' : 'لا توجد بيانات لهذا التاريخ.';
+                activeHistoryList = [];
+                renderedHistoryCount = 0;
                 const li = document.createElement('li');
-                li.innerHTML = `<div style="text-align: center; padding: 25px; color: var(--text-muted); font-weight: bold; font-size: 1em;">${noDataMessage}</div>`;
-                li.style.background = 'transparent';
-                li.style.boxShadow = 'none';
+                li.style.cssText = 'background: transparent; box-shadow: none; border: none; list-style: none; padding: 0;';
+                
+                let titleMsg = 'سجل العمليات فارغ حالياً';
+                let subMsg = 'أدخل المبالغ في الحاسبة واضغط على "حفظ يومية" لتسجيل أول عملية';
+                let actionBtnHtml = '';
+
+                if (searchTerm) {
+                    titleMsg = 'لا توجد نتائج تطابق كلمة البحث';
+                    subMsg = 'تأكد من كتابة التاريخ أو المبلغ أو الملاحظة بشكل صحيح';
+                } else if (filterDate && filterDate !== 'ALL') {
+                    titleMsg = `لا توجد عمليات مسجلة بتاريخ ${filterDate}`;
+                    subMsg = 'يمكنك اختيار تاريخ آخر من التقويم، أو الضغط أدناه لعرض العمليات السابقة';
+                    actionBtnHtml = `
+                        <button type="button" onclick="document.getElementById('show-all-btn').click()" class="btn" style="width: auto; min-width: 160px; margin: 10px auto 0; padding: 8px 18px; font-size: 0.85em; font-weight: 800; border-radius: 20px; background: transparent; border: 1.5px solid var(--primary-color); color: var(--primary-color); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fas fa-history"></i> عرض كافة السجلات
+                        </button>
+                    `;
+                }
+
+                li.innerHTML = `
+                    <div class="empty-history-state" style="text-align: center; padding: 25px 15px; background: var(--input-bg); border-radius: 16px; border: 1.5px dashed var(--border-color); margin: 8px 0;">
+                        <div style="font-size: 2em; margin-bottom: 6px; opacity: 0.85;">📋</div>
+                        <div style="font-weight: 800; color: var(--text-color); font-size: 0.95em; margin-bottom: 4px;">${titleMsg}</div>
+                        <div style="font-size: 0.82em; color: var(--text-muted); line-height: 1.5;">${subMsg}</div>
+                        ${actionBtnHtml}
+                    </div>
+                `;
                 historyList.appendChild(li);
                 summaryDiv.style.display = 'none';
             } else {
                 summaryDiv.style.display = 'block';
                 summarySpan.textContent = totalSum.toFixed(2);
 
-                // عرض السجلات المطابقة
-                historyToDisplay.forEach(item => {
-                    renderHistoryItem(item, false);
-                });
+                // العرض السلس بالدفعات (Chunking) لتفادي تجميد المتصفح
+                activeHistoryList = historyToDisplay;
+                renderedHistoryCount = 0;
+                renderNextHistoryChunk();
             }
 
             attachHistoryEventListeners();
@@ -944,30 +1260,19 @@ window.AppStorage.initSync();
             const listItem = document.createElement('li');
             listItem.dataset.id = item.id;
 
-            // تمييز خاص لآخر عملية إذا كانت خارج التاريخ المحدد
+            let badgeHtml = '';
             if (isSpecialLastOp) {
                 listItem.style.border = '2px dashed var(--accent-color)';
                 listItem.style.position = 'relative';
-                const badge = document.createElement('div');
-                badge.textContent = 'آخر عملية مسجلة';
-                badge.style.position = 'absolute';
-                badge.style.top = '-10px';
-                badge.style.left = '50%';
-                badge.style.transform = 'translateX(-50%)';
-                badge.style.background = 'var(--accent-color)';
-                badge.style.color = 'var(--text-color)';
-                badge.style.padding = '2px 8px';
-                badge.style.borderRadius = '10px';
-                badge.style.fontSize = '0.75em';
-                badge.style.fontWeight = 'bold';
-                listItem.appendChild(badge);
+                badgeHtml = '<div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--accent-color); color: var(--text-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold;">آخر عملية مسجلة</div>';
             }
 
             let digitalBadges = '';
             if (item.vodafone > 0) digitalBadges += '<span class="badge vodafone">فودافون</span>';
             if (item.instapay > 0) digitalBadges += '<span class="badge instapay">إنستا</span>';
 
-            listItem.innerHTML += `
+            listItem.innerHTML = `
+                ${badgeHtml}
                 <div class="history-info">
                     <span class="history-date">${item.timestamp}</span>
                     <span class="history-amount">${item.total.toFixed(2)}</span>
@@ -985,28 +1290,50 @@ window.AppStorage.initSync();
                     <button class="delete-btn" title="حذف السجل"><i class="fas fa-trash-alt"></i></button>
                 </div>
             `;
-            historyList.appendChild(listItem);
+            return listItem;
         }
 
+        // تفويض الأحداث الموحد (Event Delegation) على قائمة السجل لمنع تسريب الذاكرة وإلغاء آلاف الـ Listeners
+        let isHistoryEventsDelegated = false;
         function attachHistoryEventListeners() {
-            historyList.querySelectorAll('.receipt-btn-history').forEach(btn => btn.addEventListener('click', (e) => {
-                const id = parseInt(e.target.closest('li').dataset.id);
-                let history = [];
-                try { history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]'); } catch (err) {}
-                const record = history.find(r => r.id === id);
-                if (record) {
-                    showThermalReceiptModal(record);
+            if (isHistoryEventsDelegated) return;
+            isHistoryEventsDelegated = true;
+
+            historyList.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+
+                if (btn.id === 'load-more-history-btn') {
+                    renderNextHistoryChunk();
+                    return;
                 }
-            }));
-            historyList.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', handleViewDetails));
-            historyList.querySelectorAll('.share-btn-history').forEach(btn => btn.addEventListener('click', handleShareRecord));
-            historyList.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditRecord));
-            historyList.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDeleteRecord));
+
+                const li = btn.closest('li');
+                if (!li || !li.dataset.id) return;
+                const id = parseInt(li.dataset.id);
+
+                if (btn.classList.contains('receipt-btn-history')) {
+                    let history = [];
+                    try { history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]'); } catch (err) {}
+                    const record = history.find(r => r.id === id);
+                    if (record) {
+                        showThermalReceiptModal(record);
+                    }
+                } else if (btn.classList.contains('view-btn')) {
+                    handleViewDetails(id);
+                } else if (btn.classList.contains('share-btn-history')) {
+                    handleShareRecord(id);
+                } else if (btn.classList.contains('edit-btn')) {
+                    handleEditRecord(id);
+                } else if (btn.classList.contains('delete-btn')) {
+                    handleDeleteRecord(id);
+                }
+            });
         }
 
         // تم استعادة وظائف SweetAlert2 (مطلوب وجود مكتبة SweetAlert2 في <head>)
         function handleViewDetails(event) {
-            const id = parseInt(event.currentTarget.closest('li').dataset.id);
+            const id = typeof event === 'number' ? event : parseInt(event?.currentTarget?.closest('li')?.dataset?.id || event?.currentTarget?.dataset?.id || event);
             let history = [];
             try {
                 history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]');
@@ -1023,7 +1350,7 @@ window.AppStorage.initSync();
 
         // ====== تم تعديل هذه الدالة لإضافة حقل "الزيادة/النقصان" ======
         async function handleEditRecord(event) {
-            const id = parseInt(event.currentTarget.closest('li').dataset.id);
+            const id = typeof event === 'number' ? event : parseInt(event?.currentTarget?.closest('li')?.dataset?.id || event?.currentTarget?.dataset?.id || event);
             let history = [];
             try {
                 history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]');
@@ -1275,7 +1602,7 @@ window.AppStorage.initSync();
         // =========================================================
 
         function handleShareRecord(event) {
-            const id = parseInt(event.currentTarget.closest('li').dataset.id);
+            const id = typeof event === 'number' ? event : parseInt(event?.currentTarget?.closest('li')?.dataset?.id || event?.currentTarget?.dataset?.id || event);
             let history = [];
             try {
                 history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]');
@@ -1303,7 +1630,7 @@ window.AppStorage.initSync();
         }
 
         function handleDeleteRecord(event) {
-            const id = parseInt(event.currentTarget.closest('li').dataset.id);
+            const id = typeof event === 'number' ? event : parseInt(event?.currentTarget?.closest('li')?.dataset?.id || event?.currentTarget?.dataset?.id || event);
             Swal.fire({
                 title: 'هل أنت متأكد؟',
                 text: "لن تتمكن من استعادة هذا السجل!",
@@ -1422,7 +1749,8 @@ window.AppStorage.initSync();
                 console.error("Error loading history for save:", e);
             }
             history.unshift(dayData);
-            AppStorage.setItem('cashCalculatorHistory', JSON.stringify(history.slice(0, 100)));
+            // حفظ كافة السجلات التاريخية بأمان في IndexedDB دون تقييد بـ 100 عملية
+            AppStorage.setItem('cashCalculatorHistory', JSON.stringify(history));
 
             // إظهار جميع السجلات والعملية الجديدة فوراً في بداية القائمة
             dateFilterInput.value = '';
@@ -1496,12 +1824,18 @@ window.AppStorage.initSync();
         });
 
         const settingsModal = document.getElementById('settings-modal');
+        function closeSettingsModal() {
+            if (settingsModal) settingsModal.style.display = 'none';
+            const homeNavBtn = document.querySelector(".nav-item[onclick*=\"'home'\"]");
+            if (homeNavBtn) {
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                homeNavBtn.classList.add('active');
+            }
+        }
+        window.closeSettingsModal = closeSettingsModal;
+
         document.getElementById('settings-btn').addEventListener('click', () => {
             settingsModal.style.display = 'flex';
-            // Ensure close button works
-            document.getElementById('close-settings-modal').addEventListener('click', () => {
-                settingsModal.style.display = 'none';
-            });
         });
 
         // جعل شارة العملة قابلة للضغط لفتح الإعدادات مباشرة والتركيز على العملة
@@ -1526,13 +1860,11 @@ window.AppStorage.initSync();
             setTimeout(() => { currencySelect.style.boxShadow = originalShadow; }, 1500);
         });
 
-        document.getElementById('close-settings-modal').addEventListener('click', () => {
-            settingsModal.style.display = 'none';
-        });
+        document.getElementById('close-settings-modal').addEventListener('click', closeSettingsModal);
 
         settingsModal.addEventListener('click', (e) => {
             if (e.target === settingsModal) {
-                settingsModal.style.display = 'none';
+                closeSettingsModal();
             }
         });
 
@@ -1962,15 +2294,19 @@ window.AppStorage.initSync();
             loadHistory('ALL'); // عرض كل العمليات بالكامل وتفريغ حقل التاريخ
         });
 
-        // إضافة البحث المباشر
+        // إضافة البحث المباشر مع Debounce ذكي (250ms) لمنع تجميد الشاشة أثناء الكتابة
+        let searchDebounceTimer = null;
         searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.trim();
-            const filterDate = dateFilterInput.value;
-            if (filterDate || searchTerm) {
-                loadHistory(filterDate || null, searchTerm);
-            } else {
-                loadHistory();
-            }
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                const searchTerm = searchInput.value.trim();
+                const filterDate = dateFilterInput.value;
+                if (filterDate || searchTerm) {
+                    loadHistory(filterDate || null, searchTerm);
+                } else {
+                    loadHistory();
+                }
+            }, 250);
         });
 
         // تصدير البيانات (JSON)
@@ -2320,7 +2656,278 @@ window.AppStorage.initSync();
         });
 
         // ==========================================
-        // 🧾 نظام إيصال الكاشير الحراري (Thermal POS Receipt)
+        // 📊 محرك تصدير السجلات إلى إكسل (Excel / CSV UTF-8 Engine)
+        // ==========================================
+        window.exportHistoryToExcel = function () {
+            let history = [];
+            try {
+                history = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]');
+            } catch (e) {
+                console.error("Error loading history for Excel export:", e);
+            }
+
+            if (!history || history.length === 0) {
+                playSound('error');
+                Swal.fire({
+                    icon: 'info',
+                    title: 'لا توجد سجلات',
+                    text: 'لم يتم العثور على أي عمليات مسجلة في السجل لتصديرها.',
+                    background: 'var(--card-background)',
+                    color: 'var(--text-color)',
+                    confirmButtonColor: 'var(--primary-color)'
+                });
+                return;
+            }
+
+            const headers = [
+                'رقم الإيصال',
+                'التاريخ',
+                'الوقت / الطابع الزمني',
+                'العملة',
+                'الإجمالي النهائي',
+                'إجمالي عدد الأوراق',
+                'النقدي (كاش)',
+                'فودافون كاش',
+                'إنستا باي',
+                'مبيعات النظام (العهدة)',
+                'الفارق',
+                'الملاحظات',
+                'تفاصيل الفئات النقدية'
+            ];
+
+            const escapeCsv = (str) => {
+                if (str === undefined || str === null) return '""';
+                const s = String(str).replace(/"/g, '""');
+                return `"${s}"`;
+            };
+
+            const rows = [headers.map(escapeCsv).join(',')];
+
+            history.forEach(item => {
+                const grandTotal = item.grandTotal || item.total || 0;
+                const vodafone = item.vodafone || 0;
+                const instapay = item.instapay || 0;
+                const cashOnly = (grandTotal - (vodafone + instapay)).toFixed(2);
+                const sysTotal = item.systemTotal || '';
+                let diffStr = '';
+                if (sysTotal) {
+                    const diff = grandTotal - parseFloat(sysTotal);
+                    diffStr = diff.toFixed(2);
+                }
+
+                let detailsStr = '';
+                if (item.details) {
+                    detailsStr = Object.entries(item.details)
+                        .map(([val, count]) => `${count}×${val}`)
+                        .join(' | ');
+                }
+
+                const row = [
+                    escapeCsv(item.receiptNumber || `REC-${item.id}`),
+                    escapeCsv(item.simpleDate || item.timestamp || ''),
+                    escapeCsv(item.timestamp || ''),
+                    escapeCsv(item.currency || 'جنيه'),
+                    escapeCsv(grandTotal.toFixed(2)),
+                    escapeCsv(item.totalPapers || 0),
+                    escapeCsv(cashOnly),
+                    escapeCsv(vodafone.toFixed(2)),
+                    escapeCsv(instapay.toFixed(2)),
+                    escapeCsv(sysTotal),
+                    escapeCsv(diffStr),
+                    escapeCsv(item.note || ''),
+                    escapeCsv(detailsStr)
+                ];
+                rows.push(row.join(','));
+            });
+
+            const csvContent = '\uFEFF' + rows.join('\r\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            const now = new Date();
+            const dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            link.href = url;
+            link.download = `سجل_حاسبة_النقدية_${dateStr}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            playSound('success');
+            Swal.fire({
+                icon: 'success',
+                title: 'تم تصدير ملف Excel بنجاح ✅',
+                text: `تم تصدير ${history.length} سجل بنجاح بصيغة CSV المتوافقة تماماً مع Excel العربي.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3500,
+                background: 'var(--card-background)',
+                color: 'var(--text-color)'
+            });
+        };
+
+        // ==========================================
+        // 🏪 إعدادات المتجر والفاتورة (Store Settings)
+        // ==========================================
+        window.saveStoreSettings = function () {
+            const name = document.getElementById('store-name-input')?.value.trim() || '';
+            const phone = document.getElementById('store-phone-input')?.value.trim() || '';
+            const address = document.getElementById('store-address-input')?.value.trim() || '';
+            const tax = document.getElementById('store-tax-input')?.value.trim() || '';
+
+            AppStorage.setItem('storeName', name);
+            AppStorage.setItem('storePhone', phone);
+            AppStorage.setItem('storeAddress', address);
+            AppStorage.setItem('storeTax', tax);
+
+            playSound('success');
+            Swal.fire({
+                icon: 'success',
+                title: 'تم حفظ بيانات المتجر بنجاح ✅',
+                text: 'ستظهر هذه البيانات في رأس إيصالات الكاشير الحرارية.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                background: 'var(--card-background)',
+                color: 'var(--text-color)'
+            });
+        };
+
+        function loadStoreSettings() {
+            const name = AppStorage.getItem('storeName') || '';
+            const phone = AppStorage.getItem('storePhone') || '';
+            const address = AppStorage.getItem('storeAddress') || '';
+            const tax = AppStorage.getItem('storeTax') || '';
+
+            const nameInp = document.getElementById('store-name-input');
+            const phoneInp = document.getElementById('store-phone-input');
+            const addressInp = document.getElementById('store-address-input');
+            const taxInp = document.getElementById('store-tax-input');
+
+            if (nameInp) nameInp.value = name;
+            if (phoneInp) phoneInp.value = phone;
+            if (addressInp) addressInp.value = address;
+            if (taxInp) taxInp.value = tax;
+        }
+
+        // ==========================================
+        // ⚡ تحويل ناتج الآلة الحاسبة المباشر (Math Result Quick Transfer)
+        // ==========================================
+        window.transferMathResult = function (target) {
+            const resultElem = document.getElementById('math-result');
+            let rawText = resultElem ? resultElem.textContent.trim() : (window.mathCurrentInput || '0');
+            let cleaned = rawText.replace(/[^0-9.-]/g, '');
+            let numVal = parseFloat(cleaned);
+
+            if (isNaN(numVal) || numVal <= 0) {
+                playSound('error');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'لا يوجد ناتج للتحويل',
+                    text: 'قم بإجراء عملية حسابية أولاً في الآلة الحاسبة للحصول على ناتج موجب.',
+                    background: 'var(--card-background)',
+                    color: 'var(--text-color)'
+                });
+                return;
+            }
+
+            let targetLabel = '';
+            if (target === 'vodafone') {
+                const vodafoneInp = document.getElementById('vodafone-cash');
+                if (vodafoneInp) {
+                    vodafoneInp.value = numVal;
+                    targetLabel = 'فودافون كاش';
+                }
+            } else if (target === 'instapay') {
+                const instapayInp = document.getElementById('instapay');
+                if (instapayInp) {
+                    instapayInp.value = numVal;
+                    targetLabel = 'إنستا باي';
+                }
+            } else if (target === 'target') {
+                const quickTarget = document.getElementById('quick-system-target');
+                const sysInp = document.getElementById('system-total-input');
+                if (quickTarget) quickTarget.value = numVal;
+                if (sysInp) sysInp.value = numVal;
+                AppStorage.setItem('systemTotal', numVal.toString());
+                targetLabel = 'مبيعات النظام (العهدة)';
+
+                // إذا كان كارت العهدة مخفياً، نقوم بإظهاره تلقائياً
+                const card = document.getElementById('custody-card');
+                if (card && (card.style.display === 'none' || getComputedStyle(card).display === 'none')) {
+                    card.style.display = 'block';
+                    AppStorage.setItem('showCustodyCard', 'true');
+                    const t1 = document.getElementById('show-custody-card-toggle');
+                    const t2 = document.getElementById('show-custody-card-toggle-data');
+                    if (t1) t1.checked = true;
+                    if (t2) t2.checked = true;
+                }
+            }
+
+            // الرجوع للرئيسية والتحديث
+            handleBottomNav('home', document.querySelector('.nav-item'));
+            calculateTotal();
+            playSound('cash');
+
+            Swal.fire({
+                icon: 'success',
+                title: 'تم الترحيل بنجاح ⚡',
+                text: `تم ترحيل مبلغ ${numVal.toFixed(2)} إلى ${targetLabel}.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                background: 'var(--card-background)',
+                color: 'var(--text-color)'
+            });
+        };
+
+        // ==========================================
+        // 🏁 باركود الإيصال الحراري المتجهي (Vector Barcode SVG)
+        // ==========================================
+        function generateBarcodeSvg(codeText) {
+            let bars = '';
+            let x = 10;
+            const cleanStr = String(codeText).replace(/[^A-Za-z0-9_-]/g, '') || 'REC-1';
+
+            bars += `<rect x="${x}" y="0" width="2" height="35" fill="#000"/>`;
+            x += 3;
+            bars += `<rect x="${x}" y="0" width="1" height="35" fill="#000"/>`;
+            x += 3;
+
+            for (let i = 0; i < cleanStr.length; i++) {
+                const charCode = cleanStr.charCodeAt(i);
+                const w1 = (charCode % 3) + 1;
+                const s1 = ((charCode >> 1) % 2) + 1;
+                const w2 = ((charCode >> 2) % 3) + 1;
+                const s2 = ((charCode >> 3) % 2) + 1;
+
+                bars += `<rect x="${x}" y="0" width="${w1}" height="35" fill="#000"/>`;
+                x += w1 + s1;
+                bars += `<rect x="${x}" y="0" width="${w2}" height="35" fill="#000"/>`;
+                x += w2 + s2;
+            }
+
+            bars += `<rect x="${x}" y="0" width="2" height="35" fill="#000"/>`;
+            x += 4;
+            bars += `<rect x="${x}" y="0" width="1" height="35" fill="#000"/>`;
+            x += 10;
+
+            return `
+                <div class="receipt-barcode">
+                    <svg viewBox="0 0 ${x} 35" xmlns="http://www.w3.org/2000/svg" style="display:block; margin: 0 auto; height: 35px;">
+                        ${bars}
+                    </svg>
+                    <div class="receipt-barcode-num">* ${cleanStr} *</div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 🧾 نظام إيصال الكاشير الحراري المطور (Thermal POS Receipt v5.4.0)
         // ==========================================
         function showThermalReceiptModal(recordData = null) {
             let details = {}, grandTotal = 0, vodafone = 0, instapay = 0, entryDate = '', totalPapers = 0;
@@ -2355,7 +2962,12 @@ window.AppStorage.initSync();
             const userName = AppStorage.getItem('userName') || 'مسؤول الخزينة';
             const userRole = AppStorage.getItem('userRole') || 'كاشير';
             const serial = AppStorage.getItem('deviceSerial') || 'POS-001';
-            
+
+            const storeName = AppStorage.getItem('storeName') || 'حاسبة النقد الاحترافية';
+            const storePhone = AppStorage.getItem('storePhone') || '';
+            const storeAddress = AppStorage.getItem('storeAddress') || '';
+            const storeTax = AppStorage.getItem('storeTax') || '';
+
             // عداد تسلسلي تصاعدي يبدأ من 1 ثم 2 وهكذا
             let receiptNumCounter = parseInt(AppStorage.getItem('lastReceiptCounter') || '0') + 1;
             if (!recordData) {
@@ -2393,12 +3005,36 @@ window.AppStorage.initSync();
                 `;
             }
 
+            // قسم مطابقة العهدة في الإيصال إن وُجدت
+            let custodyReceiptHtml = '';
+            const sysTargetVal = parseFloat(document.getElementById('quick-system-target')?.value) || parseFloat(AppStorage.getItem('systemTotal')) || 0;
+            if (sysTargetVal > 0) {
+                const custodyDiff = grandTotal - sysTargetVal;
+                const statusStr = Math.abs(custodyDiff) < 0.001 ? 'مطابقة تامة ✅' : (custodyDiff > 0 ? `زيادة (+${custodyDiff.toFixed(2)}) 🟢` : `عجز (${custodyDiff.toFixed(2)}) 🔴`);
+                custodyReceiptHtml = `
+                    <div class="receipt-custody-box">
+                        <div class="receipt-row-flex" style="font-size: 0.82em;"><span>مبيعات النظام (العهدة):</span><b>${sysTargetVal.toFixed(2)} ${currencySymbol}</b></div>
+                        <div class="receipt-row-flex" style="font-size: 0.82em;"><span>الفعلي بالدرج:</span><b>${grandTotal.toFixed(2)} ${currencySymbol}</b></div>
+                        <div class="receipt-row-flex" style="font-size: 0.85em; font-weight: bold; border-top: 1px dashed #999; margin-top: 3px; padding-top: 3px;">
+                            <span>الفارق والجرد:</span>
+                            <span>${statusStr}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const curCode = AppStorage.getItem('selectedCurrency') || 'egp';
+            const tafqeetText = window.tafqeet ? window.tafqeet(grandTotal, curCode) : '';
+
             const receiptHtml = `
                 <div id="thermal-print-area" class="receipt-paper-wrapper">
                     <div class="receipt-header">
                         <div style="font-size: 1.6em; margin-bottom: 2px;">🏪</div>
-                        <h3>حاسبة النقد الاحترافية</h3>
-                        <p>إيصال جرد وردية وتسليم نقدية</p>
+                        <h3 style="margin: 0; font-size: 1.25em; font-weight: 900;">${storeName}</h3>
+                        <p style="margin: 2px 0 4px; font-size: 0.85em; opacity: 0.85;">إيصال جرد وردية وتسليم نقدية</p>
+                        ${storeAddress ? `<div style="font-size: 0.8em; color: #333;">📍 ${storeAddress}</div>` : ''}
+                        ${storePhone ? `<div style="font-size: 0.8em; color: #333;">📞 ${storePhone}</div>` : ''}
+                        ${storeTax ? `<div style="font-size: 0.75em; color: #555;">س.ت / ضريبي: ${storeTax}</div>` : ''}
                     </div>
 
                     <div class="receipt-meta">
@@ -2434,9 +3070,17 @@ window.AppStorage.initSync();
                         </div>
                     </div>
 
+                    <div class="receipt-tafqeet">
+                        ${tafqeetText}
+                    </div>
+
+                    ${custodyReceiptHtml}
+
+                    ${generateBarcodeSvg(receiptNumber)}
+
                     <div class="receipt-footer">
                         <p style="margin: 0; font-weight: bold;">*** تم الاعتماد والمطابقة بنجاح ***</p>
-                        <p style="margin: 3px 0 0; font-size: 0.85em; opacity: 0.75;">شكراً لتعاملكم - نظام الكاشير الذكي</p>
+                        <p style="margin: 3px 0 0; font-size: 0.85em; opacity: 0.75;">شكراً لتعاملكم - نظام الكاشير الذكي Pro</p>
                     </div>
                 </div>
             `;
@@ -2749,23 +3393,31 @@ window.AppStorage.initSync();
             } catch (e) { console.log('Audio error:', e); }
         }
 
-        // نظام الأمان المطور
+        // نظام الأمان المطور وحماية القفل الذكي
+        window._isAppUnlocked = false;
+        let isCheckingPassword = false;
+
         let idleTimer;
         function resetIdleTimer() {
             clearTimeout(idleTimer);
             const minutes = parseInt(AppStorage.getItem('autoLockTimer') || '0');
-            if (minutes > 0 && AppStorage.getItem('passwordEnabled') === 'true') {
+            if (minutes > 0 && AppStorage.getItem('passwordEnabled') === 'true' && window._isAppUnlocked) {
                 idleTimer = setTimeout(() => {
-                    if (document.getElementById('settings-modal').style.display !== 'flex') {
-                        location.reload();
-                    }
+                    window._isAppUnlocked = false;
+                    checkPassword();
                 }, minutes * 60000);
             }
         }
 
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden' && AppStorage.getItem('lockOnHide') === 'true' && AppStorage.getItem('passwordEnabled') === 'true') {
-                AppStorage.setItem('forceLock', 'true');
+            if (document.visibilityState === 'hidden') {
+                if (AppStorage.getItem('lockOnHide') === 'true' && AppStorage.getItem('passwordEnabled') === 'true') {
+                    window._isAppUnlocked = false;
+                }
+            } else if (document.visibilityState === 'visible') {
+                if (AppStorage.getItem('lockOnHide') === 'true' && AppStorage.getItem('passwordEnabled') === 'true' && !window._isAppUnlocked) {
+                    checkPassword();
+                }
             }
         });
 
@@ -2784,7 +3436,7 @@ window.AppStorage.initSync();
             if (document.querySelector('#mode-toggle-btn i')) document.querySelector('#mode-toggle-btn i').className = iconClass;
             if (document.querySelector('#header-mode-toggle i')) document.querySelector('#header-mode-toggle i').className = iconClass;
 
-            const savedColorTheme = AppStorage.getItem('colorTheme') || 'red';
+            const savedColorTheme = AppStorage.getItem('colorTheme') || 'blue';
             changeThemeColor(savedColorTheme);
 
             // تمييز اللون المختار في الإعدادات
@@ -2847,75 +3499,50 @@ window.AppStorage.initSync();
                     }
                 };
             }
+
+            // 4. استعادة حالة إظهار/إخفاء كارت العهدة ومبيعات النظام
+            const showCustodyCard = AppStorage.getItem('showCustodyCard') === 'true';
+            const custodyCardEl = document.getElementById('custody-card');
+            if (custodyCardEl) {
+                custodyCardEl.style.display = showCustodyCard ? 'block' : 'none';
+            }
+            const custodyToggle1 = document.getElementById('show-custody-card-toggle');
+            const custodyToggle2 = document.getElementById('show-custody-card-toggle-data');
+            if (custodyToggle1) custodyToggle1.checked = showCustodyCard;
+            if (custodyToggle2) custodyToggle2.checked = showCustodyCard;
         }
-        function loadTheme() { loadSettings(); }
 
-        async function checkPassword() {
-            const enabled = AppStorage.getItem('passwordEnabled') === 'true';
-            const password = AppStorage.getItem('appPassword');
-            if (enabled && password) {
-                while (true) {
-                    const result = await Swal.fire({
-                        title: 'أدخل كلمة المرور',
-                        input: 'password',
-                        inputPlaceholder: 'كلمة المرور',
-                        showCancelButton: false,
-                        showDenyButton: true,
-                        denyButtonText: 'هل نسيت كلمة المرور؟',
-                        denyButtonColor: '#6c757d',
-                        confirmButtonText: 'دخول',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: () => {
-                            // إضافة زر العين لشاشة الدخول تلقائياً
-                            const input = Swal.getInput();
-                            const container = input.parentElement;
-                            container.style.position = 'relative';
-
-                            const eye = document.createElement('i');
-                            eye.className = 'fas fa-eye';
-                            eye.style.cssText = 'position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #B8860B; z-index: 10;';
-
-                            eye.onclick = () => {
-                                if (input.type === 'password') {
-                                    input.type = 'text';
-                                    eye.className = 'fas fa-eye-slash';
-                                } else {
-                                    input.type = 'password';
-                                    eye.className = 'fas fa-eye';
-                                }
-                            };
-                            container.appendChild(eye);
-                            input.style.paddingLeft = '35px';
-                        },
-                        inputValidator: (value) => {
-                            if (!value) return 'الرجاء إدخال كلمة المرور!';
-                        }
-                    });
-
-                    if (result.isConfirmed) {
-                        if (result.value === password) break;
-                        await Swal.fire('خطأ', 'كلمة المرور غير صحيحة!', 'error');
-                    } else if (result.isDenied) {
-                        const { value: code } = await Swal.fire({
-                            title: 'استعادة الدخول',
-                            text: 'أدخل كود الطوارئ',
-                            input: 'text',
-                            confirmButtonText: 'تحقق',
-                            showCancelButton: true,
-                            cancelButtonText: 'إلغاء'
-                        });
-                        if (code === '500') {
-                            await Swal.fire('تم', 'تم فتح التطبيق', 'success');
-                            break;
-                        } else if (code) {
-                            await Swal.fire('خطأ', 'الكود غير صحيح', 'error');
-                        }
-                    }
+        window.toggleCustodyCardVisibility = function (isVisible) {
+            const card = document.getElementById('custody-card');
+            if (card) {
+                card.style.display = isVisible ? 'block' : 'none';
+                if (isVisible) {
+                    calculateTotal();
                 }
             }
-            return true;
-        }
+            AppStorage.setItem('showCustodyCard', isVisible ? 'true' : 'false');
+
+            const toggle1 = document.getElementById('show-custody-card-toggle');
+            const toggle2 = document.getElementById('show-custody-card-toggle-data');
+            if (toggle1) toggle1.checked = isVisible;
+            if (toggle2) toggle2.checked = isVisible;
+
+            playSound(isVisible ? 'success' : 'trash');
+            Swal.fire({
+                icon: isVisible ? 'success' : 'info',
+                title: isVisible ? 'تم تفعيل كارت العهدة ✅' : 'تم إخفاء كارت العهدة 👁️',
+                text: isVisible ? 'يظهر كارت مطابقة العهدة (مبيعات السيستم) الآن في الشاشة الرئيسية.' : 'تم إخفاء كارت مطابقة العهدة من الشاشة الرئيسية، ويمكنك تفعيله في أي وقت من الإعدادات.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                background: 'var(--card-background)',
+                color: 'var(--text-color)'
+            });
+        };
+        function loadTheme() { loadSettings(); }
+
+        // استدعاء دالة فحص كلمة المرور الموحدة في الأسفل
 
         // توليد سريال فريد للجهاز
         function generateDeviceSerial() {
@@ -3122,17 +3749,8 @@ window.AppStorage.initSync();
         };
 
         function checkAnnouncement() {
-            const seen = AppStorage.getItem('announcement_v5_2_1_seen') || localStorage.getItem('announcement_v5_2_1_seen');
-            if (!seen) {
-                setTimeout(() => {
-                    const overlay = document.getElementById('new-features-announcement');
-                    if (overlay) {
-                        overlay.style.display = 'flex';
-                        overlay.style.opacity = '1';
-                        playSound('success');
-                    }
-                }, 800);
-            }
+            // تم إيقاف الظهور التلقائي للإعلان نهائياً عند فتح التطبيق لمنع إزعاج المستخدم
+            return;
         }
 
         document.getElementById('about-app-btn')?.addEventListener('click', () => {
@@ -3417,76 +4035,148 @@ window.AppStorage.initSync();
 
         async function checkPassword() {
             const isPasswordEnabled = AppStorage.getItem('passwordEnabled') === 'true';
-            const appPassword = AppStorage.getItem('appPassword');
-            if (!isPasswordEnabled || !appPassword) return true;
-
-            const { value: enteredPassword } = await Swal.fire({
-                title: '🔒 حماية كلمة المرور',
-                html: `
-                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">الرجاء إدخال كلمة المرور للمتابعة:</p>
-                    <div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto;">
-                        <input id="swal-password-input" type="password" placeholder="أدخل كلمة المرور"
-                            style="width: 100%; padding: 12px 42px 12px 15px; border-radius: 14px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 1.1em; outline: none; box-sizing: border-box; text-align: center;">
-                        <i id="swal-eye-btn" class="fas fa-eye"
-                            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary-color); cursor: pointer; font-size: 1.2em; transition: all 0.2s;"></i>
-                    </div>
-                `,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                confirmButtonText: 'دخول 🔓',
-                confirmButtonColor: 'var(--primary-color)',
-                background: 'var(--card-background)',
-                color: 'var(--text-color)',
-                didOpen: () => {
-                    const passInput = document.getElementById('swal-password-input');
-                    const eyeBtn = document.getElementById('swal-eye-btn');
-                    passInput.focus();
-
-                    eyeBtn.addEventListener('click', () => {
-                        if (passInput.type === 'password') {
-                            passInput.type = 'text';
-                            eyeBtn.classList.remove('fa-eye');
-                            eyeBtn.classList.add('fa-eye-slash');
-                        } else {
-                            passInput.type = 'password';
-                            eyeBtn.classList.remove('fa-eye-slash');
-                            eyeBtn.classList.add('fa-eye');
-                        }
-                    });
-
-                    passInput.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') {
-                            Swal.clickConfirm();
-                        }
-                    });
-                },
-                preConfirm: () => {
-                    const entered = document.getElementById('swal-password-input').value;
-                    if (!entered) {
-                        Swal.showValidationMessage('يرجى كتابة كلمة المرور');
-                        return false;
-                    }
-                    return entered;
-                }
-            });
-
-            if (enteredPassword === appPassword) {
-                playSound('success');
+            const appPassword = (AppStorage.getItem('appPassword') || '').trim();
+            if (!isPasswordEnabled || !appPassword) {
+                window._isAppUnlocked = true;
                 return true;
-            } else {
-                playSound('error');
-                Swal.fire({
-                    title: 'خطأ',
-                    text: 'كلمة المرور غير صحيحة!',
-                    icon: 'error',
-                    confirmButtonText: 'إعادة المحاولة',
+            }
+
+            if (window._isAppUnlocked) return true;
+            if (isCheckingPassword) return true;
+            isCheckingPassword = true;
+
+            // التأكد من توفر مكتبة التنبيهات حتى في أصعب الظروف
+            if (typeof Swal === 'undefined') {
+                const entered = prompt('🔒 حماية التطبيق - يرجى إدخال كلمة المرور:');
+                if (entered && entered.trim() === appPassword) {
+                    window._isAppUnlocked = true;
+                    isCheckingPassword = false;
+                    AppStorage.removeItem('forceLock');
+                    return true;
+                }
+                isCheckingPassword = false;
+                return false;
+            }
+
+            while (true) {
+                const result = await Swal.fire({
+                    title: '🔒 حماية كلمة المرور',
+                    html: `
+                        <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">الرجاء إدخال كلمة المرور للمتابعة:</p>
+                        <div style="position: relative; width: 100%; max-width: 300px; margin: 0 auto;">
+                            <input id="swal-password-input" type="password" placeholder="أدخل كلمة المرور"
+                                style="width: 100%; padding: 12px 42px 12px 15px; border-radius: 14px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 1.1em; outline: none; box-sizing: border-box; text-align: center;">
+                            <i id="swal-eye-btn" class="fas fa-eye"
+                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary-color); cursor: pointer; font-size: 1.2em; transition: all 0.2s;"></i>
+                        </div>
+                    `,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showDenyButton: true,
+                    denyButtonText: 'هل نسيت كلمة المرور؟',
+                    denyButtonColor: '#6c757d',
+                    confirmButtonText: 'دخول 🔓',
                     confirmButtonColor: 'var(--primary-color)',
                     background: 'var(--card-background)',
-                    color: 'var(--text-color)'
-                }).then(() => {
-                    location.reload();
+                    color: 'var(--text-color)',
+                    didOpen: () => {
+                        const passInput = document.getElementById('swal-password-input');
+                        const eyeBtn = document.getElementById('swal-eye-btn');
+                        if (passInput) passInput.focus();
+
+                        if (eyeBtn && passInput) {
+                            eyeBtn.addEventListener('click', () => {
+                                if (passInput.type === 'password') {
+                                    passInput.type = 'text';
+                                    eyeBtn.classList.remove('fa-eye');
+                                    eyeBtn.classList.add('fa-eye-slash');
+                                } else {
+                                    passInput.type = 'password';
+                                    eyeBtn.classList.remove('fa-eye-slash');
+                                    eyeBtn.classList.add('fa-eye');
+                                }
+                            });
+
+                            passInput.addEventListener('keypress', (e) => {
+                                if (e.key === 'Enter') {
+                                    Swal.clickConfirm();
+                                }
+                            });
+                        }
+                    },
+                    preConfirm: () => {
+                        const passInput = document.getElementById('swal-password-input');
+                        const entered = passInput ? passInput.value : '';
+                        if (!entered) {
+                            Swal.showValidationMessage('يرجى كتابة كلمة المرور');
+                            return false;
+                        }
+                        return entered;
+                    }
                 });
-                return false;
+
+                if (result.isConfirmed) {
+                    const enteredPassword = (result.value || '').trim();
+                    if (enteredPassword === appPassword) {
+                        window._isAppUnlocked = true;
+                        isCheckingPassword = false;
+                        AppStorage.removeItem('forceLock');
+                        playSound('success');
+                        resetIdleTimer();
+                        return true;
+                    } else {
+                        playSound('error');
+                        await Swal.fire({
+                            title: 'خطأ',
+                            text: 'كلمة المرور غير صحيحة! يرجى إعادة المحاولة.',
+                            icon: 'error',
+                            confirmButtonText: 'حاول مجدداً',
+                            confirmButtonColor: 'var(--primary-color)',
+                            background: 'var(--card-background)',
+                            color: 'var(--text-color)'
+                        });
+                        // يتابع داخل الحلقة التكرارية لفتح حقل الإدخال فوراً دون إعادة تحميل
+                    }
+                } else if (result.isDenied) {
+                    const { value: code } = await Swal.fire({
+                        title: 'استعادة الدخول 🔑',
+                        text: 'أدخل كود الطوارئ لفتح التطبيق:',
+                        input: 'text',
+                        confirmButtonText: 'تحقق',
+                        confirmButtonColor: 'var(--primary-color)',
+                        showCancelButton: true,
+                        cancelButtonText: 'رجوع',
+                        background: 'var(--card-background)',
+                        color: 'var(--text-color)'
+                    });
+                    if (code === '500') {
+                        window._isAppUnlocked = true;
+                        isCheckingPassword = false;
+                        AppStorage.removeItem('forceLock');
+                        playSound('success');
+                        await Swal.fire({
+                            title: 'تم بنجاح ✅',
+                            text: 'تم الدخول بكود الطوارئ وإلغاء القفل مؤقتاً.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false,
+                            background: 'var(--card-background)',
+                            color: 'var(--text-color)'
+                        });
+                        resetIdleTimer();
+                        return true;
+                    } else if (code) {
+                        playSound('error');
+                        await Swal.fire({
+                            title: 'خطأ',
+                            text: 'كود الطوارئ غير صحيح!',
+                            icon: 'error',
+                            confirmButtonText: 'حسناً',
+                            background: 'var(--card-background)',
+                            color: 'var(--text-color)'
+                        });
+                    }
+                }
             }
         }
 
@@ -3500,6 +4190,7 @@ window.AppStorage.initSync();
             if (!accessGranted) return;
 
             loadSettings(); // تحميل كافة الإعدادات والسمات وحالة إخفاء العملات والأمان
+            loadStoreSettings(); // تحميل بيانات المتجر والإيصال الحراري
             createUI(); // بناء جدول الفئات النقدية (200، 100، 50...)
             loadInputs(); // تحميل المدخلات المحفوظة
             checkUserProfile(); // التحقق من الملف الشخصي والترحيب عند البدء
@@ -3513,7 +4204,22 @@ window.AppStorage.initSync();
             const dateFilterElem = document.getElementById('date-filter-input');
             
             if (entryDateElem && !entryDateElem.value) entryDateElem.value = todayISO;
-            if (dateFilterElem) dateFilterElem.value = entryDateElem ? entryDateElem.value : todayISO;
+
+            // فحص السجلات: إذا وُجدت سجلات لليوم نعرضها، وإن لم توجد لكن توجد سجلات سابقة، نعرض السجلات السابقة فوراً لتفادي الرسالة الفارغة
+            let allHistory = [];
+            try { allHistory = JSON.parse(AppStorage.getItem('cashCalculatorHistory') || '[]'); } catch (e) {}
+            const hasToday = allHistory.some(item => item.simpleDate === todayISO);
+
+            if (hasToday) {
+                if (dateFilterElem) dateFilterElem.value = todayISO;
+                loadHistory(todayISO);
+            } else if (allHistory.length > 0) {
+                if (dateFilterElem) dateFilterElem.value = '';
+                loadHistory('ALL');
+            } else {
+                if (dateFilterElem) dateFilterElem.value = todayISO;
+                loadHistory(todayISO);
+            }
 
             // ربط تزامن تغيير التاريخ في الأعلى مع السجل
             if (entryDateElem) {
@@ -3523,20 +4229,34 @@ window.AppStorage.initSync();
                 });
             }
 
-            loadHistory(dateFilterElem ? dateFilterElem.value : todayISO);
-            calculateTotal();
+            // تهيئة وتزامن حقول العهدة ومبيعات النظام
+            const quickTargetInp = document.getElementById('quick-system-target');
+            const sysTotalInp = document.getElementById('system-total-input');
+            const savedSysTotal = AppStorage.getItem('systemTotal');
+            if (savedSysTotal) {
+                if (quickTargetInp) quickTargetInp.value = savedSysTotal;
+                if (sysTotalInp) sysTotalInp.value = savedSysTotal;
+            }
+            if (quickTargetInp) {
+                quickTargetInp.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    if (sysTotalInp) sysTotalInp.value = val;
+                    if (val) AppStorage.setItem('systemTotal', val);
+                    else AppStorage.removeItem('systemTotal');
+                    calculateTotal();
+                });
+            }
+            if (sysTotalInp) {
+                sysTotalInp.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    if (quickTargetInp) quickTargetInp.value = val;
+                    if (val) AppStorage.setItem('systemTotal', val);
+                    else AppStorage.removeItem('systemTotal');
+                    calculateTotal();
+                });
+            }
 
-            // إعلام سريع بأن التاريخ تم تحديثه
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: false,
-                background: 'var(--card-background)',
-                color: 'var(--text-color)'
-            });
-            Toast.fire({ icon: 'success', title: 'تم تحميل سجلات اليوم' });
+            calculateTotal();
 
             // تسجيل وقت الدخول الحالي تلقائياً
             let loginLogs = JSON.parse(AppStorage.getItem('appLoginLogs') || '[]');
@@ -3569,11 +4289,14 @@ window.AppStorage.initSync();
             document.getElementById('lock-on-hide').checked = AppStorage.getItem('lockOnHide') === 'true';
             document.getElementById('auto-lock-timer').value = AppStorage.getItem('autoLockTimer') || '0';
 
-            // تفعيل القفل القسري إذا كان مفعلاً من الخبء
-            if (AppStorage.getItem('forceLock') === 'true') {
-                AppStorage.removeItem('forceLock');
-                location.reload();
-            }
+            // تنظيف أي حالة قفل سابقة لمنع التكرار نهائياً
+            AppStorage.removeItem('forceLock');
+
+            // ضمان وصول دوال الواجهة للأزرار والتنقل
+            window.switchTab = switchTab;
+            window.switchTabByName = switchTabByName;
+            window.handleBottomNav = handleBottomNav;
+            window.showThermalReceiptModal = showThermalReceiptModal;
 
             // رسالة الميزة الجديدة (تظهر مرة واحدة فقط)
             if (!AppStorage.getItem('feature_papers_announced')) {
@@ -3856,14 +4579,15 @@ window.AppStorage.initSync();
         // ---------------------------------------------------------
         function buildWhatsAppReport() {
             const total = parseFloat(document.getElementById('total-amount')?.textContent) || 0;
-            const currencySymbol = document.getElementById('currency-symbol')?.textContent || 'ج.م';
-            const systemTotal = parseFloat(document.getElementById('system-total-input')?.value) || 0;
+            const currencySymbol = document.getElementById('currency-label')?.textContent || 'ج.م';
+            const systemTotal = parseFloat(document.getElementById('quick-system-target')?.value) || parseFloat(document.getElementById('system-total-input')?.value) || parseFloat(AppStorage.getItem('systemTotal')) || 0;
             const diff = total - systemTotal;
             const now = new Date();
             const dateStr = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
             const userName = AppStorage.getItem('userName') || 'موظف';
             const userRole = AppStorage.getItem('userRole') || 'cashier';
+            const storeName = AppStorage.getItem('storeName') || '';
 
             // جمع بيانات الفئات
             const noteRows = document.querySelectorAll('.note-row');
@@ -3878,7 +4602,10 @@ window.AppStorage.initSync();
                 }
             });
 
-            let report = `🟥 *تقرير عد العهدة 🟥*
+            const curCode = document.getElementById('currency-select')?.value || 'egp';
+            const tafqeetStr = window.tafqeet ? window.tafqeet(total, curCode) : '';
+
+            let report = `🟥 *تقرير عد الخزينة والعهدة ${storeName ? `(${storeName}) ` : ''}🟥*
 
 📅 *التاريخ:* ${dateStr}
 ⏰ *الوقت:* ${timeStr}
@@ -3886,18 +4613,20 @@ window.AppStorage.initSync();
 
 💵 *تفاصيل الفئات:*
 ${denomRows || '  • لا توجد بيانات'}
-📊 *إجمالي العد:* ${total.toLocaleString('ar-EG')} ${currencySymbol}`;
+📊 *إجمالي العد:* ${total.toLocaleString('ar-EG')} ${currencySymbol}
+📝 *المبلغ تفقيطاً:* ${tafqeetStr}`;
 
             if (systemTotal > 0) {
-                const diffIcon = diff > 0 ? '✅' : diff < 0 ? '❌' : '🔵';
+                const diffIcon = Math.abs(diff) < 0.001 ? '✅' : (diff > 0 ? '🟢' : '🔴');
                 report += `
-🖥️ *مبيعات النظام:* ${systemTotal.toLocaleString('ar-EG')} ${currencySymbol}
-${diffIcon} *الفرق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')} ${currencySymbol}`;
+
+🖥️ *مبيعات النظام (العهدة):* ${systemTotal.toLocaleString('ar-EG')} ${currencySymbol}
+${diffIcon} *الفارق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG')} ${currencySymbol} (${Math.abs(diff) < 0.001 ? 'مطابقة تامة' : (diff > 0 ? 'زيادة' : 'عجز')})`;
             }
 
             // بيانات المحفظة الرقمية
             const vodafone = parseFloat(document.getElementById('vodafone-cash')?.value) || 0;
-            const instapay = parseFloat(document.getElementById('instapay-amount')?.value) || 0;
+            const instapay = parseFloat(document.getElementById('instapay')?.value) || 0;
             if (vodafone > 0 || instapay > 0) {
                 report += `
 
