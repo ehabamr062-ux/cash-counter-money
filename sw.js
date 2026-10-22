@@ -1,5 +1,5 @@
 // ===== رقم الإصدار ونظام الـ Cache - غيّره مع كل تحديث رئيسي =====
-const APP_VERSION = '5.4.3';
+const APP_VERSION = '6.0.0';
 const CACHE_NAME = `cash-calc-v${APP_VERSION}`;
 
 const STATIC_ASSETS = [
