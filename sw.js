@@ -14,6 +14,7 @@ const STATIC_ASSETS = [
     './manifest.json?v=' + APP_VERSION,
     './version.json',
     './version.json?v=' + APP_VERSION,
+    './notifications.json',
     './icons/icon-72.png',
     './icons/icon-72.png?v=' + APP_VERSION,
     './icons/icon-96.png',
@@ -100,8 +101,8 @@ self.addEventListener('fetch', event => {
 
     const url = new URL(event.request.url);
 
-    // 1. ملف فحص الإصدار (version.json) - Network Only دائمًا مع منع الكاش تمامًا
-    if (url.pathname.includes('version.json')) {
+    // 1. ملف فحص الإصدار والإشعارات السحابية (Network Only دائمًا مع منع الكاش تمامًا)
+    if (url.pathname.includes('version.json') || url.pathname.includes('notifications.json')) {
         event.respondWith(
             fetch(new Request(event.request.url, { cache: 'no-store' }))
                 .catch(() => caches.match(event.request))

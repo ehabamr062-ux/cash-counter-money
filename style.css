@@ -1368,6 +1368,25 @@
             transform: scale(0.92) !important;
         }
 
+        .notif-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: #ff334b;
+            border-radius: 50%;
+            border: 2px solid var(--card-background);
+            box-shadow: 0 0 8px #ff334b;
+            animation: pulseBadge 1.8s infinite;
+        }
+
+        @keyframes pulseBadge {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 51, 75, 0.7); }
+            70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(255, 51, 75, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 51, 75, 0); }
+        }
+
         #currency-status-badge {
             flex: 1 1 auto;
             min-width: 85px;

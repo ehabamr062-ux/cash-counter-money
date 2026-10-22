@@ -3733,37 +3733,95 @@ window.AppStorage.initSync();
             }
         });
 
-        // --- 📢 نظام إعلان المميزات الجديدة والتحديثات (يظهر أول مرة فقط) 📢 ---
-        window.closeAnnouncement = function () {
-            const overlay = document.getElementById('new-features-announcement');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.transition = '0.3s';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 300);
-            }
-            AppStorage.setItem('announcement_v5_2_1_seen', 'true');
-            try { localStorage.setItem('announcement_v5_2_1_seen', 'true'); } catch (e) {}
-            playSound('tick');
-        };
+        // --- 📢 نظام الإشعارات والتنبيهات السحابية المباشرة (Cloud Broadcast Engine) 📢 ---
+        let currentCloudNotification = null;
 
-        function checkAnnouncement() {
-            // تم إيقاف الظهور التلقائي للإعلان نهائياً عند فتح التطبيق لمنع إزعاج المستخدم
-            return;
+        async function checkForCloudNotifications(isManualClick = false) {
+            const badge = document.getElementById('notif-badge');
+            try {
+                const response = await fetch(`./notifications.json?_t=${Date.now()}`, {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.enabled) {
+                        currentCloudNotification = data;
+                        const lastSeenId = AppStorage.getItem('last_seen_notification_id');
+                        const isNew = lastSeenId !== data.id;
+
+                        if (badge) {
+                            badge.style.display = isNew ? 'block' : 'none';
+                        }
+
+                        // إذا ضغط المستخدم يدوياً على زر الإشعارات، أو كان إشعاراً جديداً
+                        if (isManualClick || isNew) {
+                            showNotificationModal(data);
+                        }
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('[Notifications] وضع عدم الاتصال حالياً');
+            }
+
+            if (badge) badge.style.display = 'none';
+            if (isManualClick) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'لا توجد تنبيهات جديدة 🔔',
+                    text: 'كل شيء يعمل بكفاءة وأمان، لا توجد إعلانات أو تحديثات جديدة حالياً.',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: 'var(--primary-color)',
+                    background: 'var(--card-background)',
+                    color: 'var(--text-color)'
+                });
+            }
         }
 
-        document.getElementById('about-app-btn')?.addEventListener('click', () => {
-            const overlay = document.getElementById('new-features-announcement');
-            if (overlay) {
-                overlay.style.display = 'flex';
-                overlay.style.opacity = '1';
-            }
+        function showNotificationModal(notifData) {
+            const badge = document.getElementById('notif-badge');
+            playSound('success');
+
+            Swal.fire({
+                title: notifData.title || '📢 إشعار جديد',
+                html: `
+                    <div style="direction: rtl; text-align: center; padding: 5px;">
+                        <span style="display: inline-block; background: rgba(212,175,55,0.15); color: var(--gold-primary); padding: 4px 14px; border-radius: 12px; font-size: 0.85em; font-weight: 800; border: 1px solid var(--border-color); margin-bottom: 14px;">
+                            ${notifData.badge || 'تنبيه من الإدارة'}
+                        </span>
+                        <p style="font-size: 1.02em; line-height: 1.7; color: var(--text-color); margin: 0 0 16px; font-weight: 750;">
+                            ${notifData.message}
+                        </p>
+                        ${notifData.date ? `<div style="font-size: 0.78em; color: var(--text-muted); font-weight: 600;">📅 تاريخ الإشعار: ${notifData.date}</div>` : ''}
+                    </div>
+                `,
+                icon: notifData.type === 'update' ? 'info' : (notifData.type === 'warning' ? 'warning' : 'success'),
+                confirmButtonText: notifData.actionText || 'حسناً، فهمت ✅',
+                confirmButtonColor: 'var(--primary-color)',
+                background: 'var(--card-background)',
+                color: 'var(--text-color)',
+                showCloseButton: true
+            }).then(() => {
+                // تعليم الإشعار كمقروء حتى لا يتكرر ظهوره التلقائي
+                if (notifData.id) {
+                    AppStorage.setItem('last_seen_notification_id', notifData.id);
+                }
+                if (badge) badge.style.display = 'none';
+            });
+        }
+
+        // ربط زر الجرس في الهيدر العلوي
+        document.getElementById('notifications-btn')?.addEventListener('click', () => {
+            checkForCloudNotifications(true);
         });
 
-        // تشغيل التحقق من الإعلان مع بداية التطبيق
-        window.addEventListener('DOMContentLoaded', () => {
-            checkAnnouncement();
+        // تشغيل التحقق التلقائي عند بدء التطبيق واستعادة الاتصال
+        window.addEventListener('load', () => {
+            setTimeout(() => checkForCloudNotifications(false), 1500);
+        });
+        window.addEventListener('online', () => {
+            checkForCloudNotifications(false);
         });
 
         document.getElementById('avatar-upload-input')?.addEventListener('change', function (event) {
