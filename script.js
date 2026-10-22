@@ -4005,26 +4005,46 @@ window.AppStorage.initSync();
             const dynamicUpdates = (activeNotif && Array.isArray(activeNotif.updates)) ? activeNotif.updates : [];
             const allUpdates = [...dynamicUpdates, ...APP_UPDATES_HISTORY];
 
-            const updatesHTML = allUpdates.map(up => `
-                <div class="update-history-card">
-                    <div class="update-card-header">
-                        <span class="update-version-badge">الإصدار v${up.version} • ${up.badge || 'تحديث جديد'}</span>
-                        <span class="update-date-badge">📅 بتاريخ ${up.date || 'اليوم'}</span>
-                    </div>
-                    <h4 class="update-card-title">${up.title}</h4>
-                    <ul class="update-card-list">
-                        ${(up.items || []).map(item => `<li>✅ ${item}</li>`).join('')}
-                    </ul>
-                </div>
-            `).join('');
+            const updatesHTML = allUpdates.map((up, index) => {
+                // فتح أحدث إصدار افتراضياً وطي الإصدارات السابقة لتبقى النافذة أنيقة ومدمجة
+                const isOpen = index === 0 ? 'open' : '';
+                return `
+                    <details class="update-history-card" ${isOpen}>
+                        <summary class="update-card-summary">
+                            <div class="update-card-top-row">
+                                <span class="update-version-badge">الإصدار v${up.version} • ${up.badge || 'تحديث جديد'}</span>
+                                <span class="update-date-badge">📅 ${up.date || 'اليوم'}</span>
+                            </div>
+                            <div class="update-card-title-row">
+                                <h4 class="update-card-title">${up.title}</h4>
+                                <span class="update-card-chevron"><i class="fas fa-chevron-down"></i></span>
+                            </div>
+                        </summary>
+                        <div class="update-card-content">
+                            <ul class="update-card-list">
+                                ${(up.items || []).map(item => `
+                                    <li>
+                                        <span class="check-bullet">✅</span>
+                                        <span class="item-text">${item}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </details>
+                `;
+            }).join('');
 
             Swal.fire({
                 title: '🔔 مركز الإشعارات والتحديثات',
+                customClass: {
+                    popup: 'notif-center-swal-popup'
+                },
                 html: `
                     <div class="notif-center-container">
                         ${announcementHTML}
-                        <div style="font-size: 0.85em; font-weight: 850; color: var(--text-muted); margin: 6px 0 10px; text-align: right;">
-                            📋 سجل التحديثات والتحسينات الرسمية (الأحدث في البداية):
+                        <div style="font-size: 0.82em; font-weight: 850; color: var(--text-muted); margin: 4px 0 10px; text-align: right; display: flex; align-items: center; justify-content: space-between;">
+                            <span>📋 سجل التحديثات الرسمية:</span>
+                            <span style="font-size: 0.85em; opacity: 0.8;">(اضغط على العنوان للفتح / الغلق)</span>
                         </div>
                         ${updatesHTML}
                     </div>
@@ -4033,8 +4053,7 @@ window.AppStorage.initSync();
                 confirmButtonColor: 'var(--primary-color)',
                 background: 'var(--card-background)',
                 color: 'var(--text-color)',
-                showCloseButton: true,
-                width: '520px'
+                showCloseButton: true
             }).then(() => {
                 if (activeNotif && activeNotif.id) {
                     AppStorage.setItem('last_seen_notification_id', activeNotif.id);
