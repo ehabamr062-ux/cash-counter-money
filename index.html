@@ -57,6 +57,7 @@
                         <i class="fas fa-bell"></i>
                         <span id="notif-badge" class="notif-badge" style="display: none;"></span>
                     </button>
+                    <button id="fullscreen-btn" class="btn header-action-btn" title="ملء الشاشة الكامل"><i class="fas fa-expand"></i></button>
                     <button id="header-mode-toggle" class="btn header-action-btn" title="الوضع الليلي / النهاري"><i class="fas fa-moon"></i></button>
                 </div>
                 <div id="currency-status-badge" class="btn" title="العملة الحالية">🇪🇬 جنيه</div>
@@ -146,10 +147,19 @@
         <div id="history-card">
             <h2><i class="fas fa-history"></i> سجل البيانات اليومية</h2>
 
-            <div id="history-summary"
-                style="text-align: center; margin-bottom: 15px; font-weight: bold; color: var(--primary-color); display: none; background: var(--input-bg); padding: 10px; border-radius: 10px;">
-                <span id="history-summary-text">مجموع السجلات المعروضة:</span> <span id="history-total-sum"
-                    style="color: var(--secondary-color); font-size: 1.2em;">0.00</span>
+            <div id="history-summary" class="history-shift-stats" style="display: none;">
+                <div class="shift-stat-item">
+                    <span class="shift-stat-label"><i class="fas fa-wallet"></i> إجمالي المقبوضات</span>
+                    <span id="history-total-sum" class="shift-stat-value">0.00 ج.م</span>
+                </div>
+                <div class="shift-stat-item">
+                    <span class="shift-stat-label"><i class="fas fa-list-ol"></i> عدد العمليات</span>
+                    <span id="history-count-stat" class="shift-stat-value">0 عملية</span>
+                </div>
+                <div class="shift-stat-item">
+                    <span class="shift-stat-label"><i class="fas fa-chart-line"></i> أعلى جرد</span>
+                    <span id="history-max-stat" class="shift-stat-value">0.00 ج.م</span>
+                </div>
             </div>
 
             <div id="filter-container">
@@ -1144,6 +1154,17 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- ↩️ شريط التراجع العائم الذكي عن التصفير (Undo Toast) ↩️ -->
+    <div id="undo-toast-bar" class="undo-toast-bar" style="display: none;">
+        <div class="undo-toast-content">
+            <i class="fas fa-trash-restore"></i>
+            <span>تم تصفير العداد</span>
+        </div>
+        <button type="button" id="undo-clear-btn" class="undo-action-btn" onclick="restoreClearedSnapshot()">
+            <i class="fas fa-undo"></i> تراجع واستعادة
+        </button>
     </div>
 
     <script src="script.js?v=5.4.3"></script>

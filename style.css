@@ -1249,14 +1249,14 @@
             .header-group-start {
                 display: flex !important;
                 align-items: center !important;
-                gap: 3px !important;
+                gap: 2.5px !important;
                 flex-shrink: 0 !important;
             }
 
             .header-action-btn {
-                width: 33px !important;
+                width: 32px !important;
                 height: 36px !important;
-                min-width: 33px !important;
+                min-width: 32px !important;
                 min-height: 36px !important;
                 border-radius: 11px !important;
                 padding: 0 !important;
@@ -1264,10 +1264,10 @@
 
             #currency-status-badge {
                 flex: 0 1 auto !important;
-                min-width: 52px !important;
-                max-width: 78px !important;
+                min-width: 48px !important;
+                max-width: 74px !important;
                 height: 36px !important;
-                padding: 0 4px !important;
+                padding: 0 3px !important;
                 font-size: 0.82em !important;
                 font-weight: 800 !important;
                 display: flex !important;
@@ -5695,4 +5695,157 @@ details summary .fa-chevron-down {
     line-height: 1.7;
     color: var(--text-color);
     font-weight: 700;
+}
+
+/* ==================================================== */
+/* ↩️ شريط التراجع العائم الذكي عن التصفير (Undo Toast) ↩️ */
+/* ==================================================== */
+.undo-toast-bar {
+    position: fixed !important;
+    bottom: 76px !important;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(25px) !important;
+    background: #0F172A !important;
+    color: #FFFFFF !important;
+    padding: 10px 18px !important;
+    border-radius: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.18) !important;
+    z-index: 99999 !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    white-space: nowrap !important;
+}
+
+:root[data-theme="light"] .undo-toast-bar {
+    background: #1E293B !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.3) !important;
+}
+
+.undo-toast-bar.show {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateX(-50%) translateY(0) !important;
+}
+
+.undo-toast-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 0.88em !important;
+    font-weight: 800 !important;
+}
+
+.undo-toast-content i {
+    color: #F87171 !important;
+    font-size: 1.05em !important;
+}
+
+.undo-action-btn {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 20px !important;
+    padding: 5px 14px !important;
+    font-size: 0.84em !important;
+    font-weight: 850 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: transform 0.15s ease !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
+}
+
+.undo-action-btn:active {
+    transform: scale(0.92) !important;
+}
+
+/* ==================================================== */
+/* 📊 كارت إحصائيات تقفيل اليوم والوردية في السجل 📊 */
+/* ==================================================== */
+.history-shift-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+    background: var(--input-bg) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    padding: 12px 8px !important;
+    box-sizing: border-box !important;
+}
+
+:root[data-theme="light"] .history-shift-stats {
+    background: #F8FAFC !important;
+    border-color: #CBD5E1 !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+.shift-stat-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 4px 2px !important;
+}
+
+.shift-stat-item:not(:last-child) {
+    border-left: 1px solid var(--border-color) !important;
+}
+
+.shift-stat-label {
+    font-size: 0.74em !important;
+    color: var(--text-muted) !important;
+    font-weight: 800 !important;
+    margin-bottom: 4px !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.shift-stat-value {
+    font-size: 0.92em !important;
+    color: var(--primary-color) !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+}
+
+:root[data-theme="dark"] .shift-stat-value {
+    color: var(--gold-primary) !important;
+}
+
+@media (max-width: 420px) {
+    .header-action-btn {
+        width: 30px !important;
+        min-width: 30px !important;
+        height: 35px !important;
+        min-height: 35px !important;
+    }
+    .header-group-start {
+        gap: 2px !important;
+    }
+    #currency-status-badge {
+        min-width: 46px !important;
+        max-width: 58px !important;
+        font-size: 0.76em !important;
+        padding: 0 2px !important;
+    }
+    .history-shift-stats {
+        padding: 10px 4px !important;
+        gap: 4px !important;
+    }
+    .shift-stat-label {
+        font-size: 0.68em !important;
+    }
+    .shift-stat-value {
+        font-size: 0.82em !important;
+    }
 }

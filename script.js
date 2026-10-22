@@ -1063,7 +1063,87 @@ window.AppStorage.initSync();
             showRecordDetails(details, total, totalPapers, '📄 معاينة تفاصيل التعديل');
         }
 
+        // --- ↩️ نظام التراجع الذكي عن التصفير لحماية بيانات الكاشير ↩️ ---
+        let lastClearedSnapshot = null;
+        let undoToastTimer = null;
+
+        function saveSnapshotBeforeClear() {
+            const inputs = {};
+            document.querySelectorAll('.cash-input').forEach(input => {
+                const val = input.value ? input.value.trim() : '';
+                if (val && val !== '0') {
+                    inputs[input.id] = val;
+                }
+            });
+            const vf = document.getElementById('vodafone-cash')?.value ? document.getElementById('vodafone-cash').value.trim() : '';
+            const ip = document.getElementById('instapay')?.value ? document.getElementById('instapay').value.trim() : '';
+
+            if (Object.keys(inputs).length > 0 || (vf && vf !== '0') || (ip && ip !== '0')) {
+                lastClearedSnapshot = { inputs, vf, ip };
+                return true;
+            }
+            return false;
+        }
+
+        function showUndoToast() {
+            const bar = document.getElementById('undo-toast-bar');
+            if (!bar) return;
+            bar.style.display = 'flex';
+            setTimeout(() => bar.classList.add('show'), 15);
+
+            if (undoToastTimer) clearTimeout(undoToastTimer);
+            undoToastTimer = setTimeout(() => {
+                hideUndoToast();
+            }, 6000);
+        }
+
+        function hideUndoToast() {
+            const bar = document.getElementById('undo-toast-bar');
+            if (!bar) return;
+            bar.classList.remove('show');
+            setTimeout(() => {
+                if (!bar.classList.contains('show')) {
+                    bar.style.display = 'none';
+                }
+            }, 350);
+            if (undoToastTimer) {
+                clearTimeout(undoToastTimer);
+                undoToastTimer = null;
+            }
+        }
+
+        function restoreClearedSnapshot() {
+            if (!lastClearedSnapshot) return;
+            Object.keys(lastClearedSnapshot.inputs).forEach(id => {
+                const input = document.getElementById(id);
+                if (input) input.value = lastClearedSnapshot.inputs[id];
+            });
+            if (document.getElementById('vodafone-cash')) {
+                document.getElementById('vodafone-cash').value = lastClearedSnapshot.vf;
+            }
+            if (document.getElementById('instapay')) {
+                document.getElementById('instapay').value = lastClearedSnapshot.ip;
+            }
+            calculateTotal();
+            playSound('success');
+            hideUndoToast();
+            lastClearedSnapshot = null;
+
+            Swal.fire({
+                icon: 'success',
+                title: 'تم استعادة الأرقام السابقة بنجاح ↩️',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1800
+            });
+        }
+        window.restoreClearedSnapshot = restoreClearedSnapshot;
+        window.hideUndoToast = hideUndoToast;
+
         function resetInputs(resetFilters = true) {
+            const hadData = saveSnapshotBeforeClear();
+
             document.querySelectorAll('.cash-input').forEach(input => { input.value = ''; });
             document.getElementById('vodafone-cash').value = '';
             document.getElementById('instapay').value = '';
@@ -1098,6 +1178,10 @@ window.AppStorage.initSync();
             } else {
                 document.getElementById('date-filter-input').value = localDate;
                 loadHistory(localDate);
+            }
+
+            if (hadData) {
+                showUndoToast();
             }
         }
 
@@ -1242,10 +1326,17 @@ window.AppStorage.initSync();
                     </div>
                 `;
                 historyList.appendChild(li);
-                summaryDiv.style.display = 'none';
+                if (summaryDiv) summaryDiv.style.display = 'none';
             } else {
-                summaryDiv.style.display = 'block';
-                summarySpan.textContent = totalSum.toFixed(2);
+                if (summaryDiv) summaryDiv.style.display = 'grid';
+                if (summarySpan) summarySpan.textContent = totalSum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+                const countSpan = document.getElementById('history-count-stat');
+                const maxSpan = document.getElementById('history-max-stat');
+                if (countSpan) countSpan.textContent = historyToDisplay.length + ' عملية';
+                if (maxSpan) {
+                    const maxVal = Math.max(...historyToDisplay.map(item => item.total));
+                    maxSpan.textContent = maxVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+                }
 
                 // العرض السلس بالدفعات (Chunking) لتفادي تجميد المتصفح
                 activeHistoryList = historyToDisplay;
@@ -1767,23 +1858,64 @@ window.AppStorage.initSync();
                 Swal.fire('خطأ', 'لا يمكن مشاركة تقرير فارغ.', 'error');
                 return;
             }
-            const date = new Date().toLocaleDateString('ar-EG', { dateStyle: 'long' });
+            const date = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const time = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
             const totalPapersInMainShare = Array.from(document.querySelectorAll('.cash-input')).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
-            let message = `*📊 تقرير النقدية:*\nتاريخ: ${date}\n\n*الإجمالي الكلي:* ${grandTotal.toFixed(2)}\n*📄 عدد الأوراق:* ${totalPapersInMainShare}\n\n`;
-            const detailsText = formatDetailsToText(getCalculationDetails());
-            const vodafone = document.getElementById('vodafone-cash').value || 0;
-            const instapay = document.getElementById('instapay').value || 0;
 
-            if (detailsText) { message += `*التفاصيل:*\n${detailsText}`; }
-            if (vodafone > 0 || instapay > 0) { message += `*الخزينة الرقمية:*\nفودافون: ${vodafone}\nإنستا باي: ${instapay}`; }
-
-            const userName = AppStorage.getItem('userName');
+            const userName = AppStorage.getItem('userName') || 'مسؤول الخزينة';
+            const userRole = AppStorage.getItem('userRole') || '';
+            const roleText = userRole ? ` (${userRole})` : '';
             const userPhone = AppStorage.getItem('userPhone');
-            if (userName) message += `\n\n👤 *المستخدم:* ${userName}`;
-            if (userPhone) message += `\n📞 *الهاتف:* ${userPhone}`;
+            const tafqeetText = document.getElementById('tafqeet-display')?.innerText || '';
+
+            let message = `📊 *تقرير تقفيل الخزينة والجرد*\n`;
+            message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `👤 *المسؤول:* ${userName}${roleText}\n`;
+            message += `📅 *التاريخ:* ${date}\n`;
+            message += `⏰ *الوقت:* ${time}\n`;
+            message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `💵 *إجمالي النقدية:* ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ج.م\n`;
+            if (tafqeetText && !tafqeetText.includes('صفر')) {
+                message += `📝 *التفقيط:* ${tafqeetText}\n`;
+            }
+            message += `📄 *عدد الأوراق:* ${totalPapersInMainShare} ورقة\n\n`;
+
+            const detailsText = formatDetailsToText(getCalculationDetails());
+            if (detailsText) {
+                message += `📋 *تفاصيل الفئات النقدية:*\n${detailsText}\n\n`;
+            }
+
+            const vodafone = parseFloat(document.getElementById('vodafone-cash')?.value || '0');
+            const instapay = parseFloat(document.getElementById('instapay')?.value || '0');
+            if (vodafone > 0 || instapay > 0) {
+                message += `📱 *الخزينة الرقمية:*\n`;
+                if (vodafone > 0) message += `• فودافون كاش: ${vodafone.toLocaleString()} ج.م\n`;
+                if (instapay > 0) message += `• إنستا باي: ${instapay.toLocaleString()} ج.م\n`;
+                message += `\n`;
+            }
+
+            const custodyTarget = parseFloat(document.getElementById('quick-system-target')?.value || '0');
+            if (custodyTarget > 0) {
+                const diff = grandTotal - custodyTarget;
+                message += `🎯 *مطابقة العهدة (مبيعات السيستم):*\n`;
+                message += `• المطلوب: ${custodyTarget.toLocaleString()} ج.م\n`;
+                if (Math.abs(diff) < 0.01) {
+                    message += `• الحالة: متطابق 100% بدون عجز أو زيادة ✅\n`;
+                } else if (diff > 0) {
+                    message += `• الحالة: زيادة نقدية بالدرج (+${diff.toLocaleString()} ج.م) 🟢\n`;
+                } else {
+                    message += `• الحالة: عجز بالدرج (${diff.toLocaleString()} ج.م) ⚠️\n`;
+                }
+                message += `\n`;
+            }
+
+            if (userPhone) message += `📞 *رقم التواصل:* ${userPhone}\n`;
+            message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `⚡ تم الجرد والتقفيل عبر تطبيق حاسبة النقود الذكية`;
 
             const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
+            playSound('success');
         });
 
         // زر النسخ
@@ -3899,6 +4031,55 @@ window.AppStorage.initSync();
         // ربط زر الجرس في الهيدر العلوي
         document.getElementById('notifications-btn')?.addEventListener('click', () => {
             checkForCloudNotifications(true);
+        });
+
+        // --- ⛶ زر ووظيفة ملء الشاشة الكامل (Fullscreen Mode) ⛶ ---
+        function toggleFullScreen() {
+            try {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                    const docEl = document.documentElement;
+                    if (docEl.requestFullscreen) {
+                        docEl.requestFullscreen().catch(() => {});
+                    } else if (docEl.webkitRequestFullscreen) {
+                        docEl.webkitRequestFullscreen();
+                    } else if (docEl.mozRequestFullScreen) {
+                        docEl.mozRequestFullScreen();
+                    } else if (docEl.msRequestFullscreen) {
+                        docEl.msRequestFullscreen();
+                    }
+                    updateFullscreenIcons(true);
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    updateFullscreenIcons(false);
+                }
+            } catch (err) {
+                console.warn('Fullscreen not supported or blocked:', err);
+            }
+        }
+        window.toggleFullScreen = toggleFullScreen;
+
+        function updateFullscreenIcons(isFullscreen) {
+            const btn = document.getElementById('fullscreen-btn');
+            if (btn) {
+                btn.innerHTML = isFullscreen ? '<i class="fas fa-compress"></i>' : '<i class="fas fa-expand"></i>';
+                btn.title = isFullscreen ? 'إنهاء ملء الشاشة' : 'ملء الشاشة الكامل';
+            }
+        }
+
+        document.getElementById('fullscreen-btn')?.addEventListener('click', toggleFullScreen);
+        document.addEventListener('fullscreenchange', () => {
+            updateFullscreenIcons(!!document.fullscreenElement);
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            updateFullscreenIcons(!!document.webkitFullscreenElement);
         });
 
         // تشغيل التحقق التلقائي عند بدء التطبيق واستعادة الاتصال
