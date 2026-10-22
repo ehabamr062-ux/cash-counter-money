@@ -4417,7 +4417,7 @@ window.AppStorage.initSync();
         // ---------------------------------------------------------
         // PWA Service Worker ونظام التحديث التلقائي الذكي للإصدارات
         // ---------------------------------------------------------
-        const CURRENT_APP_VERSION = '5.3.0';
+        const CURRENT_APP_VERSION = '5.4.1';
 
         // دالة فحص ومقارنة الإصدارات السحابية
         async function checkForAppUpdates() {
