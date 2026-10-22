@@ -3751,7 +3751,52 @@ window.AppStorage.initSync();
             }
         });
 
-        // --- 📢 نظام الإشعارات والتنبيهات السحابية المباشرة (Cloud Broadcast Engine) 📢 ---
+        // --- 📢 نظام مركز الإشعارات والتحديثات الشامل (Notification & Updates Center) 📢 ---
+        const APP_UPDATES_HISTORY = [
+            {
+                version: "5.4.3",
+                date: "2026/10/22",
+                badge: "⭐ الأحدث",
+                title: "تحسينات واجهة المستخدم ولوحة الأرقام",
+                items: [
+                    "حل مشكلة ألوان لوحة الأرقام (Numpad) في الوضع الفاتح والداكن وضمان وضوح كامل.",
+                    "إلغاء الإطارات المزدوجة في الملف الشخصي وفصل الأيقونات بمسافة كافية عن النصوص.",
+                    "إعادة توزيع أزرار ترحيل الناتج في الحاسبة (فودافون كاش، إنستا باي، العهدة) لتناسب الهواتف دون أي خروج للكلام.",
+                    "ضبط مربع معرف الجهاز (ID) وإظهار زر النسخ [نسخ] كاملاً بنسبة 100%."
+                ]
+            },
+            {
+                version: "5.4.2",
+                date: "2026/10/22",
+                badge: "مستقر",
+                title: "ضبط شريط التحكم العلوي ومربع التاريخ",
+                items: [
+                    "حل مشكلة تآكل أطراف مربع التاريخ على الهواتف الذكية وضمان وضوح الأيقونة والحدود.",
+                    "تضمين كافة المكتبات والخطوط محلياً ليعمل التطبيق بدون إنترنت 100% Offline."
+                ]
+            },
+            {
+                version: "5.4.1",
+                date: "2026/10/21",
+                badge: "مستقر",
+                title: "تطوير الحماية والاستجابة اللمسية",
+                items: [
+                    "حل حلقة فحص كلمة المرور المتكررة ودعم كود الطوارئ (500).",
+                    "إلغاء أي تأخير في الاستجابة اللمسية (0ms Tap Delay) وسلاسة النوافذ."
+                ]
+            },
+            {
+                version: "5.4.0",
+                date: "2026/10/20",
+                badge: "إصدار رئيسي",
+                title: "إطلاق الثيم الملكي والآلة الحاسبة الاحترافية",
+                items: [
+                    "إطلاق الوضع الفاتح والداكن الملكي بتصميم بنكي عصري ومريح للعين.",
+                    "إضافة الآلة الحاسبة المتقدمة وسجل العمليات الحسابية وإيصال الكاشير الحراري."
+                ]
+            }
+        ];
+
         let currentCloudNotification = null;
 
         async function checkForCloudNotifications(isManualClick = false) {
@@ -3772,58 +3817,80 @@ window.AppStorage.initSync();
                             badge.style.display = isNew ? 'block' : 'none';
                         }
 
-                        // إذا ضغط المستخدم يدوياً على زر الإشعارات، أو كان إشعاراً جديداً
                         if (isManualClick || isNew) {
-                            showNotificationModal(data);
+                            showNotificationCenterModal(data);
+                            return;
                         }
-                        return;
                     }
                 }
             } catch (e) {
                 console.log('[Notifications] وضع عدم الاتصال حالياً');
             }
 
-            if (badge) badge.style.display = 'none';
             if (isManualClick) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'لا توجد تنبيهات جديدة 🔔',
-                    text: 'كل شيء يعمل بكفاءة وأمان، لا توجد إعلانات أو تحديثات جديدة حالياً.',
-                    confirmButtonText: 'حسناً',
-                    confirmButtonColor: 'var(--primary-color)',
-                    background: 'var(--card-background)',
-                    color: 'var(--text-color)'
-                });
+                showNotificationCenterModal(currentCloudNotification);
             }
         }
 
-        function showNotificationModal(notifData) {
+        function showNotificationCenterModal(cloudData = null) {
             const badge = document.getElementById('notif-badge');
             playSound('success');
 
-            Swal.fire({
-                title: notifData.title || '📢 إشعار جديد',
-                html: `
-                    <div style="direction: rtl; text-align: center; padding: 5px;">
-                        <span style="display: inline-block; background: rgba(212,175,55,0.15); color: var(--gold-primary); padding: 4px 14px; border-radius: 12px; font-size: 0.85em; font-weight: 800; border: 1px solid var(--border-color); margin-bottom: 14px;">
-                            ${notifData.badge || 'تنبيه من الإدارة'}
-                        </span>
-                        <p style="font-size: 1.02em; line-height: 1.7; color: var(--text-color); margin: 0 0 16px; font-weight: 750;">
-                            ${notifData.message}
+            let announcementHTML = '';
+            const activeNotif = cloudData || currentCloudNotification;
+            if (activeNotif && activeNotif.enabled) {
+                announcementHTML = `
+                    <div class="notif-center-announcement">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="background: rgba(239, 68, 68, 0.15); color: #DC2626; padding: 3px 10px; border-radius: 8px; font-size: 0.82em; font-weight: 850; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                ${activeNotif.badge || '📢 تنبيه إداري عاجل'}
+                            </span>
+                            ${activeNotif.date ? `<span style="font-size: 0.8em; color: var(--text-muted); font-weight: 700;">📅 بتاريخ ${activeNotif.date}</span>` : ''}
+                        </div>
+                        <h4 style="margin: 0 0 6px 0; font-size: 1em; font-weight: 900; color: #DC2626;">${activeNotif.title || 'إشعار جديد'}</h4>
+                        <p style="margin: 0; font-size: 0.9em; line-height: 1.6; color: var(--text-color); font-weight: 750;">
+                            ${activeNotif.message}
                         </p>
-                        ${notifData.date ? `<div style="font-size: 0.78em; color: var(--text-muted); font-weight: 600;">📅 تاريخ الإشعار: ${notifData.date}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            const dynamicUpdates = (activeNotif && Array.isArray(activeNotif.updates)) ? activeNotif.updates : [];
+            const allUpdates = [...dynamicUpdates, ...APP_UPDATES_HISTORY];
+
+            const updatesHTML = allUpdates.map(up => `
+                <div class="update-history-card">
+                    <div class="update-card-header">
+                        <span class="update-version-badge">الإصدار v${up.version} • ${up.badge || 'تحديث جديد'}</span>
+                        <span class="update-date-badge">📅 بتاريخ ${up.date || 'اليوم'}</span>
+                    </div>
+                    <h4 class="update-card-title">${up.title}</h4>
+                    <ul class="update-card-list">
+                        ${(up.items || []).map(item => `<li>✅ ${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+
+            Swal.fire({
+                title: '🔔 مركز الإشعارات والتحديثات',
+                html: `
+                    <div class="notif-center-container">
+                        ${announcementHTML}
+                        <div style="font-size: 0.85em; font-weight: 850; color: var(--text-muted); margin: 6px 0 10px; text-align: right;">
+                            📋 سجل التحديثات والتحسينات الرسمية (الأحدث في البداية):
+                        </div>
+                        ${updatesHTML}
                     </div>
                 `,
-                icon: notifData.type === 'update' ? 'info' : (notifData.type === 'warning' ? 'warning' : 'success'),
-                confirmButtonText: notifData.actionText || 'حسناً، فهمت ✅',
+                confirmButtonText: 'إغلاق مركز الإشعارات ✅',
                 confirmButtonColor: 'var(--primary-color)',
                 background: 'var(--card-background)',
                 color: 'var(--text-color)',
-                showCloseButton: true
+                showCloseButton: true,
+                width: '520px'
             }).then(() => {
-                // تعليم الإشعار كمقروء حتى لا يتكرر ظهوره التلقائي
-                if (notifData.id) {
-                    AppStorage.setItem('last_seen_notification_id', notifData.id);
+                if (activeNotif && activeNotif.id) {
+                    AppStorage.setItem('last_seen_notification_id', activeNotif.id);
                 }
                 if (badge) badge.style.display = 'none';
             });

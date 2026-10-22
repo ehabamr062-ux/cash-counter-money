@@ -7,5 +7,6 @@
   "message": "اكتب نص الإشعار هنا عندما تريد نشر إشعار لجميع العملاء.",
   "actionText": "حسناً، فهمت ✅",
   "date": "2026-10-22",
-  "urgent": false
+  "urgent": false,
+  "updates": []
 }
