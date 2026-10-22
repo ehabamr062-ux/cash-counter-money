@@ -4626,7 +4626,7 @@ window.AppStorage.initSync();
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
-                    timer: 4000,
+                    timer: 2000,
                     timerProgressBar: true,
                     background: 'var(--card-background)',
                     color: 'var(--text-color)'
