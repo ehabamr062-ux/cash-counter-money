@@ -21,17 +21,17 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0A0607">
     <meta name="msapplication-TileColor" content="#0A0607">
-    <meta name="msapplication-TileImage" content="icons/icon-144.png?v=5.4.2">
+    <meta name="msapplication-TileImage" content="icons/icon-144.png?v=5.4.3">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json?v=5.4.2">
+    <link rel="manifest" href="manifest.json?v=5.4.3">
 
     <!-- Apple & Standard Icons (With Versioning) -->
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.4.2">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.4.2">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.4.2">
-    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png?v=5.4.2">
-    <link rel="shortcut icon" href="icons/icon-192.png?v=5.4.2">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=5.4.3">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png?v=5.4.3">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5.4.3">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png?v=5.4.3">
+    <link rel="shortcut icon" href="icons/icon-192.png?v=5.4.3">
 
     <!-- Local Fast & 100% Offline Libraries -->
     <link rel="stylesheet" href="libs/cairo.css">
@@ -42,7 +42,7 @@
     <script src="libs/chart.umd.min.js"></script>
     <script src="libs/email.min.js"></script>
 
-    <link rel="stylesheet" href="style.css?v=5.4.2">
+    <link rel="stylesheet" href="style.css?v=5.4.3">
 </head>
 
 <body>
@@ -226,7 +226,7 @@
                                 <p style="margin: 6px 0 0; font-size: 0.9em; color: rgba(255,255,255,0.9); font-weight: 750;">تخصيص الهوية وبيانات المسؤول</p>
                             </div>
 
-                            <div style="padding: 0 20px 20px; position: relative; margin-top: -45px; text-align: center;">
+                            <div style="padding: 0 12px 18px; position: relative; margin-top: -45px; text-align: center;">
 
                                 <!-- صورة المستخدم مع بادج التعديل -->
                                 <div style="position: relative; display: inline-block; margin-bottom: 20px;">
@@ -271,39 +271,48 @@
                                     </div>
                                 </div>
 
-                                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                                    <div class="account-input-group">
+                                <!-- الحقول بتصميم مربع واحد أنيق بدون تكرار إطارات -->
+                                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+                                    <div class="account-field-wrap">
                                         <i class="fas fa-user"></i>
-                                        <input type="text" id="user-name-input" placeholder="الاسم (مثال: أحمد محمد)">
+                                        <input type="text" id="user-name-input" class="account-field-input" placeholder="الاسم (مثال: أحمد محمد)">
                                     </div>
-                                    <div class="account-input-group">
+                                    <div class="account-field-wrap">
                                         <i class="fas fa-briefcase"></i>
-                                        <input type="text" id="user-role-input" placeholder="المسمى الوظيفي (كاشير، مدير...)">
+                                        <input type="text" id="user-role-input" class="account-field-input" placeholder="المسمى الوظيفي (كاشير، مدير...)">
                                     </div>
-                                    <div class="account-input-group">
+                                    <div class="account-field-wrap">
                                         <i class="fas fa-phone-alt"></i>
-                                        <input type="tel" id="user-phone-input" placeholder="رقم الهاتف" style="direction: ltr; text-align: right;">
+                                        <input type="tel" id="user-phone-input" class="account-field-input" placeholder="رقم الهاتف" style="direction: ltr; text-align: right;">
                                     </div>
-                                    <div class="account-input-group">
+                                    <div class="account-field-wrap">
                                         <i class="fas fa-envelope"></i>
-                                        <input type="email" id="user-email-input" placeholder="البريد الإلكتروني">
+                                        <input type="email" id="user-email-input" class="account-field-input" placeholder="البريد الإلكتروني">
                                     </div>
                                 </div>
 
-                                <div style="margin-bottom: 20px; text-align: right;">
-                                    <label style="display:block; margin-bottom:8px; font-size: 0.88em; color: var(--text-color); font-weight: 850;">معرف الجهاز الخاص بك (ID):</label>
-                                    <div style="display: flex; gap: 8px;">
-                                        <input type="text" id="user-serial-display" readonly
-                                            style="flex-grow: 1; background: var(--input-bg); color: var(--primary-color); border: 1.5px dashed var(--primary-color); border-radius: 12px; padding: 12px; font-family: monospace; letter-spacing: 1px; text-align: center; cursor: default; font-weight: 900; outline: none;">
-                                        <button onclick="copySerial()" class="btn"
-                                            style="padding: 0 16px; border-radius: 12px; font-size: 1.1em; background: var(--card-background); color: var(--primary-color); border: 1.5px solid var(--border-color);"><i class="fas fa-copy"></i></button>
+                                <!-- معرف الجهاز الخاص بك مع زر نسخ مرن متناسق وواضح 100% -->
+                                <div class="account-serial-box">
+                                    <label class="account-serial-label">معرف الجهاز الخاص بك (ID):</label>
+                                    <div class="account-serial-row">
+                                        <input type="text" id="user-serial-display" readonly value="" title="معرف الجهاز">
+                                        <button type="button" onclick="copySerial()" class="serial-copy-btn" title="نسخ المعرف">
+                                            <i class="fas fa-copy"></i>
+                                            <span>نسخ</span>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; color: var(--text-color); padding: 14px 16px; background: var(--input-bg); border-radius: 15px; border: 1.5px solid var(--border-color); margin-bottom: 16px;">
-                                    <span style="font-weight: 850;"><i class="fas fa-calendar-check" style="color: var(--primary-color); margin-left: 5px;"></i> انضمام: <span id="join-date-display">--</span></span>
-                                    <span id="login-history-trigger" style="cursor: pointer; background: var(--card-background); padding: 6px 12px; border-radius: 10px; border: 1.5px solid var(--border-color); font-weight: 850;"
-                                        title="اضغط لعرض سجل الدخول"><i class="fas fa-history" style="color: var(--primary-color); margin-left: 5px;"></i> السجلات: <span id="user-records-count">0</span></span>
+                                <!-- تاريخ الانضمام وسجلات الدخول كبطاقتين منفصلتين أنيقتين بدون تداخل -->
+                                <div class="account-stats-grid">
+                                    <div class="account-stat-pill">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span>انضمام: <b id="join-date-display">--</b></span>
+                                    </div>
+                                    <div class="account-stat-pill clickable" id="login-history-trigger" title="اضغط لعرض سجل الدخول">
+                                        <i class="fas fa-history"></i>
+                                        <span>السجلات: <b id="user-records-count">0</b></span>
+                                    </div>
                                 </div>
 
                                 <button id="save-account-btn" class="btn settings-btn-primary"
@@ -1137,7 +1146,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=5.4.2"></script>
+    <script src="script.js?v=5.4.3"></script>
 </body>
 
 </html>

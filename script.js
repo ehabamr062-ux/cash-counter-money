@@ -3557,11 +3557,15 @@ window.AppStorage.initSync();
         }
 
         function copySerial() {
-            const serial = AppStorage.getItem('deviceSerial');
-            navigator.clipboard.writeText(serial).then(() => {
+            const serialInput = document.getElementById('user-serial-display');
+            const serial = AppStorage.getItem('deviceSerial') || (serialInput ? serialInput.value : '');
+            if (!serial) return;
+
+            const notifyCopied = () => {
+                playSound('success');
                 Swal.fire({
                     icon: 'success',
-                    title: 'تم نسخ السريال بنجاح ✅',
+                    title: 'تم نسخ معرف الجهاز بنجاح ✅',
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
@@ -3569,7 +3573,21 @@ window.AppStorage.initSync();
                     background: 'var(--card-background)',
                     color: 'var(--text-color)'
                 });
-            });
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(serial).then(notifyCopied).catch(() => {
+                    if (serialInput) {
+                        serialInput.select();
+                        document.execCommand('copy');
+                        notifyCopied();
+                    }
+                });
+            } else if (serialInput) {
+                serialInput.select();
+                document.execCommand('copy');
+                notifyCopied();
+            }
         }
 
         function checkUserProfile() {
@@ -4372,11 +4390,11 @@ window.AppStorage.initSync();
                                 </div>
                                 <div style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; margin-bottom: 12px;">
                                     <ul style="margin: 0; padding-right: 20px; font-size: 0.9em; line-height: 1.8; color: var(--text-color); font-weight: 750;">
+                                        <li>🔢 <b>لوحة أرقام واضحة تماماً:</b> حل اختفاء الأرقام في الوضع الفاتح وتوفير تباين عالي ووضوح كامل لكل الفئات.</li>
                                         <li>📐 <b>ضبط الشريط العلوي:</b> حل مشكلة تآكل مربع التاريخ وملاءمة كل أحجام الهواتف.</li>
                                         <li>📶 <b>وضع أوفلاين 100%:</b> تشغيل كامل للتطبيق بدون إنترنت نهائياً مع حفظ جميع المكتبات محلياً.</li>
                                         <li>🔒 <b>حماية أمنية مطورة:</b> فك قفل فوري بكلمة المرور دون إعادة تحميل وكود طوارئ (500).</li>
                                         <li>🔔 <b>نظام الإشعارات السحابية:</b> زر جرس جديد لمتابعة أحدث التنبيهات والتحديثات.</li>
-                                        <li>⚡ <b>استجابة لمسية فائقة:</b> منع أي تأخير في نقرات الأزرار وإغلاق سلس للنوافذ.</li>
                                     </ul>
                                 </div>
                                 <p style="font-size: 0.85em; text-align: center; color: var(--text-muted); margin: 0; font-weight: 700;">
@@ -4488,7 +4506,7 @@ window.AppStorage.initSync();
         // ---------------------------------------------------------
         // PWA Service Worker ونظام التحديث التلقائي الذكي للإصدارات
         // ---------------------------------------------------------
-        const CURRENT_APP_VERSION = '5.4.2';
+        const CURRENT_APP_VERSION = '5.4.3';
 
         // دالة فحص ومقارنة الإصدارات السحابية
         async function checkForAppUpdates() {

@@ -3907,7 +3907,7 @@
     border-radius: 8px !important;
     background: var(--input-bg) !important;
     border: 1px solid var(--border-color) !important;
-    color: #FFFFFF !important;
+    color: var(--text-color) !important;
     font-size: 1.05em !important;
     font-weight: 900 !important;
     text-align: center !important;
@@ -4114,7 +4114,7 @@
 #numpad-current-val {
     font-size: 1.4em;
     font-weight: 950;
-    color: #FFFFFF;
+    color: var(--text-color);
     margin-top: 2px;
 }
 
@@ -4173,7 +4173,7 @@
 .np-btn {
     background: var(--input-bg);
     border: 1px solid var(--border-color);
-    color: #FFFFFF;
+    color: var(--text-color);
     border-radius: 18px;
     height: 54px;
     font-size: 1.5em;
@@ -4186,6 +4186,7 @@
 .np-btn:active {
     transform: scale(0.92);
     background: var(--primary-color);
+    color: #FFFFFF;
 }
 
 .np-btn.action-np.clear-np {
@@ -4202,19 +4203,102 @@
 
 .numpad-confirm-btn {
     width: 100%;
-    background: var(--gold-gradient-simple);
-    color: #FFFFFF;
+    background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+    color: #FFFFFF !important;
     font-size: 1.1em;
     font-weight: 900;
     border: none;
     border-radius: 16px;
     padding: 14px;
     cursor: pointer;
-    box-shadow: 0 4px 18px rgba(255, 51, 75, 0.4);
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+}
+
+/* ==================================================== */
+/* 🌟 دعم الوضع الفاتح الكامل للوحة الأرقام (Light Mode) 🌟 */
+/* ==================================================== */
+:root[data-theme="light"] .numpad-overlay {
+    background: rgba(15, 23, 42, 0.65) !important;
+}
+
+:root[data-theme="light"] .numpad-sheet {
+    background: #FFFFFF !important;
+    border: 1.5px solid #E2E8F0 !important;
+    box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.15) !important;
+}
+
+:root[data-theme="light"] #numpad-currency-name {
+    color: #059669 !important;
+    font-weight: 900 !important;
+}
+
+:root[data-theme="light"] #numpad-current-val {
+    color: #0F172A !important;
+    font-weight: 950 !important;
+}
+
+:root[data-theme="light"] .numpad-close-btn {
+    background: #FEE2E2 !important;
+    color: #EF4444 !important;
+    border: 1px solid #FECACA !important;
+}
+
+:root[data-theme="light"] .numpad-quick-btn {
+    background: #F8FAFC !important;
+    border: 1.5px solid #CBD5E1 !important;
+    color: #0F172A !important;
+}
+
+:root[data-theme="light"] .numpad-quick-btn:active {
+    background: #10B981 !important;
+    color: #FFFFFF !important;
+}
+
+:root[data-theme="light"] .numpad-quick-btn.bundle-btn {
+    background: #ECFDF5 !important;
+    border: 1.5px solid #10B981 !important;
+    color: #047857 !important;
+}
+
+:root[data-theme="light"] .np-btn {
+    background: #FFFFFF !important;
+    border: 1.5px solid #CBD5E1 !important;
+    color: #0F172A !important;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
+}
+
+:root[data-theme="light"] .np-btn:active {
+    background: #10B981 !important;
+    color: #FFFFFF !important;
+    border-color: #059669 !important;
+}
+
+:root[data-theme="light"] .np-btn.action-np.clear-np {
+    background: #FEF2F2 !important;
+    color: #DC2626 !important;
+    border: 1.5px solid #FECACA !important;
+}
+
+:root[data-theme="light"] .np-btn.action-np.del-np {
+    background: #FFFBEB !important;
+    color: #D97706 !important;
+    border: 1.5px solid #FDE68A !important;
+}
+
+:root[data-theme="light"] .numpad-confirm-btn {
+    background: linear-gradient(135deg, #047857 0%, #10B981 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35) !important;
+}
+
+:root[data-theme="light"] .edit-count-field {
+    background: #FFFFFF !important;
+    border: 1.5px solid #CBD5E1 !important;
+    color: #0F172A !important;
 }
 .announcement-overlay {
     display: none;
@@ -4774,74 +4858,193 @@ button *, .btn *, .header-action-btn *, .tab-btn *, .action-btn-small *, .nav-it
 }
 
 /* ==================================================== */
-/* 👤 تطوير تصميمات كروت وحقول الملف الشخصي والإعدادات 👤 */
+/* 👤 تصميم موحد ونظيف لحقول الملف الشخصي بدون تكرار إطارات 👤 */
 /* ==================================================== */
-.account-input-group {
-    display: flex !important;
-    align-items: center !important;
+.account-field-wrap {
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.account-field-wrap i {
+    position: absolute !important;
+    top: 50% !important;
+    right: 14px !important;
+    transform: translateY(-50%) !important;
+    color: var(--primary-color) !important;
+    font-size: 1.1em !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+    width: 22px !important;
+    text-align: center !important;
+}
+
+.account-field-input {
+    width: 100% !important;
+    height: 48px !important;
+    padding: 0 46px 0 14px !important;
     background: var(--input-bg) !important;
     border: 1.5px solid var(--border-color) !important;
-    border-radius: 16px !important;
-    padding: 2px 14px !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    border-radius: 14px !important;
+    color: var(--text-color) !important;
+    font-size: 0.95em !important;
+    font-weight: 700 !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
-:root[data-theme="light"] .account-input-group {
-    background: #F8FAFC !important;
+:root[data-theme="light"] .account-field-input {
+    background: #FFFFFF !important;
     border: 1.5px solid #CBD5E1 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+    color: #0F172A !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
 }
 
-.account-input-group:focus-within {
+.account-field-input:focus {
     border-color: var(--primary-color) !important;
-    box-shadow: 0 0 0 3.5px var(--shadow-light), 0 8px 20px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
     background: var(--card-background) !important;
 }
 
-.account-input-group i {
-    color: var(--primary-color) !important;
-    font-size: 1.15em !important;
-    width: 28px !important;
-    text-align: center !important;
+/* معرف الجهاز الخاص وزر النسخ المرن المتجاوب */
+.account-serial-box {
+    margin-bottom: 16px !important;
+    text-align: right !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
-:root[data-theme="light"] .account-input-group input,
-:root[data-theme="dark"] .account-input-group input,
-.account-input-group input {
-    flex: 1 !important;
-    border: none !important;
-    border-style: none !important;
-    background: transparent !important;
-    padding: 12px 10px !important;
-    font-size: 0.95em !important;
-    font-weight: 700 !important;
+.account-serial-label {
+    display: block !important;
+    margin-bottom: 6px !important;
+    font-size: 0.88em !important;
     color: var(--text-color) !important;
-    outline: none !important;
-    box-shadow: none !important;
-    min-height: 44px !important;
-    height: 44px !important;
+    font-weight: 850 !important;
 }
 
-:root[data-theme="light"] #user-serial-display,
+.account-serial-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
 #user-serial-display {
-    background: #F1F5F9 !important;
-    color: #1E293B !important;
-    border: 1.5px dashed #B8860B !important;
-    border-radius: 16px !important;
-    padding: 13px !important;
-    font-family: monospace !important;
-    letter-spacing: 1.5px !important;
-    text-align: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    height: 46px !important;
+    background: var(--input-bg) !important;
+    color: var(--primary-color) !important;
+    border: 1.5px dashed var(--primary-color) !important;
+    border-radius: 12px !important;
+    padding: 0 8px !important;
+    font-family: 'Courier New', Consolas, monospace !important;
+    font-size: 0.88em !important;
+    letter-spacing: 0.5px !important;
     font-weight: 900 !important;
-    font-size: 1.1em !important;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05) !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    outline: none !important;
+    text-overflow: ellipsis !important;
+}
+
+:root[data-theme="light"] #user-serial-display {
+    background: #EFF6FF !important;
+    border: 1.5px dashed #2563EB !important;
+    color: #1D4ED8 !important;
 }
 
 :root[data-theme="dark"] #user-serial-display {
     background: #1A0F11 !important;
-    color: #FF334B !important;
-    border: 1.5px dashed #FF334B !important;
+    color: #D4AF37 !important;
+    border: 1.5px dashed #D4AF37 !important;
+}
+
+.serial-copy-btn {
+    flex: 0 0 auto !important;
+    height: 46px !important;
+    padding: 0 16px !important;
+    background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 0.9em !important;
+    font-weight: 850 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+}
+
+.serial-copy-btn:active {
+    transform: scale(0.94) !important;
+}
+
+/* بطاقتي الانضمام وسجلات الدخول بتصميم عصري فلات */
+.account-stats-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.account-stat-pill {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 10px 8px !important;
+    background: var(--input-bg) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    font-size: 0.82em !important;
+    color: var(--text-color) !important;
+    font-weight: 800 !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+}
+
+.account-stat-pill i {
+    color: var(--primary-color) !important;
+    font-size: 1.1em !important;
+}
+
+.account-stat-pill.clickable {
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.account-stat-pill.clickable:active {
+    transform: scale(0.96) !important;
+}
+
+:root[data-theme="light"] .account-stat-pill {
+    background: #F8FAFC !important;
+    border: 1.5px solid #CBD5E1 !important;
+    color: #0F172A !important;
+}
+
+/* وأيضاً إلغاء أي تنسيقات قديمة لـ .account-input-group لتجنب أي تضارب */
+.account-input-group {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
 }
 
 #save-account-btn {

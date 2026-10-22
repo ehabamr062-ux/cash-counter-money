@@ -2,22 +2,22 @@
   "appName": "حاسبة النقدية الذكية Pro",
   "shortName": "حاسبة النقدية",
   "appId": "com.cashcalc.smartpro",
-  "version": "5.4.2",
-  "versionCode": 542,
+  "version": "5.4.3",
+  "versionCode": 543,
   "releaseDate": "2026-10-22",
   "releaseType": "Official Stable Production",
   "developer": "عمرو إيهاب",
   "description": "حاسبة نقدية ذكية مع سجلات يومية وإيصال كاشير حراري ومحفظة رقمية وتخزين دائم ونظام تحديث فوري وتصميم فينتك عصري",
   "latestChanges": [
+    "حل مشكلة الألوان في لوحة الأرقام (Numpad) في الوضع الفاتح والداكن وضمان وضوح الأرقام تماماً وبأعلى تباين.",
     "ضبط شريط الأدوات العلوي ومربع التاريخ ليناسب جميع شاشات الهواتف بدون أي قص أو تآكل.",
     "دعم كامل للعمل بدون إنترنت (100% Offline) مع تضمين جميع المكتبات والخطوط والأيقونات محلياً.",
     "نظام حماية أمنية ذكي وفك قفل فوري بكلمة المرور بدون إعادة تحميل مع دعم كود الطوارئ (500).",
-    "نظام الإشعارات والتنبيهات السحابية المباشرة مع جرس تنبيهات ذكي في شريط الأدوات العلوي.",
-    "استجابة لمسية فائقة السرعة للأزرار (0ms Tap Delay) مع إغلاق سلس ومترابط لنوافذ الإعدادات."
+    "نظام الإشعارات والتنبيهات السحابية المباشرة مع جرس تنبيهات ذكي في شريط الأدوات العلوي."
   ],
   "compatibility": {
     "platforms": ["Android (PWA / APK)", "iOS (Safari WebApp)", "Desktop (Chrome / Edge / Windows PWA)"],
-    "offlineSupport": "100% Offline with Service Worker v5.4.2",
+    "offlineSupport": "100% Offline with Service Worker v5.4.3",
     "storageEngine": "IndexedDB + Persistent Storage Engine"
   }
 }
