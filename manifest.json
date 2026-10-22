@@ -2,7 +2,7 @@
     "id": "com.cashcalc.smartpro",
     "name": "حاسبة النقدية الذكية Pro",
     "short_name": "حاسبة النقدية",
-    "version": "5.4.1",
+    "version": "5.4.2",
     "description": "حاسبة نقدية ذكية مع سجلات يومية وإيصال كاشير ومحفظة رقمية",
     "start_url": "./index.html",
     "scope": "./",

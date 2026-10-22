@@ -1078,9 +1078,9 @@
             #history-card,
             #settings-card,
             #stats-card {
-                padding: 16px 12px;
-                border-radius: 24px;
-                margin-bottom: 16px;
+                padding: 14px 8px !important;
+                border-radius: 22px;
+                margin-bottom: 14px;
             }
 
             h1 {
@@ -1239,44 +1239,61 @@
                 display: flex !important;
                 align-items: center !important;
                 justify-content: space-between !important;
-                gap: 6px !important;
+                gap: 3px !important;
                 width: 100% !important;
                 margin-bottom: 12px !important;
+                box-sizing: border-box !important;
+                overflow: visible !important;
             }
 
             .header-group-start {
                 display: flex !important;
                 align-items: center !important;
-                gap: 5px !important;
+                gap: 3px !important;
                 flex-shrink: 0 !important;
             }
 
+            .header-action-btn {
+                width: 33px !important;
+                height: 36px !important;
+                min-width: 33px !important;
+                min-height: 36px !important;
+                border-radius: 11px !important;
+                padding: 0 !important;
+            }
+
             #currency-status-badge {
-                flex: 1 1 auto !important;
-                min-width: 85px !important;
-                height: 42px !important;
-                padding: 0 10px !important;
-                font-size: 0.88em !important;
+                flex: 0 1 auto !important;
+                min-width: 52px !important;
+                max-width: 78px !important;
+                height: 36px !important;
+                padding: 0 4px !important;
+                font-size: 0.82em !important;
                 font-weight: 800 !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                gap: 5px !important;
+                gap: 3px !important;
                 white-space: nowrap !important;
-                overflow: visible !important;
-                border-radius: 14px !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                border-radius: 11px !important;
+                box-sizing: border-box !important;
+                margin: 0 !important;
             }
 
             #entry-date {
-                flex: 0 0 auto !important;
-                width: 115px !important;
-                max-width: 125px !important;
-                height: 42px !important;
-                padding: 4px 6px !important;
-                font-size: 0.85em !important;
+                flex: 0 1 auto !important;
+                min-width: 78px !important;
+                max-width: 100px !important;
+                height: 36px !important;
+                padding: 2px 4px !important;
+                font-size: 0.82em !important;
                 font-weight: bold !important;
-                border-radius: 14px !important;
+                border-radius: 11px !important;
                 text-align: center !important;
+                box-sizing: border-box !important;
+                margin: 0 !important;
             }
 
             #welcome-msg {
@@ -1405,14 +1422,16 @@
         }
 
         #entry-date {
-            width: 120px;
+            width: auto;
+            max-width: 120px;
             height: 42px;
             padding: 4px 8px;
             border-radius: 14px;
             font-weight: 800;
             font-size: 0.85em;
             text-align: center;
-            flex: 0 0 auto;
+            flex: 0 1 auto;
+            box-sizing: border-box;
             transition: all 0.2s ease;
         }
 
@@ -2532,25 +2551,26 @@
             padding: 10px !important;
         }
 
-        /* تنسيق حقل التاريخ - تصميم رائع */
+        /* تنسيق حقل التاريخ - تصميم متناسق بدون قص أو تآكل */
         #entry-date {
-            padding: 8px 15px !important;
+            padding: 4px 6px !important;
             background: var(--card-background) !important;
             color: var(--primary-color) !important;
-            border: 2px solid var(--primary-color) !important;
-            border-radius: 20px !important;
-            font-family: 'Tajawal', sans-serif;
+            border: 1.5px solid var(--border-color) !important;
+            border-radius: 12px !important;
+            font-family: inherit;
             font-weight: 800;
-            font-size: 0.95em;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+            box-sizing: border-box !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             outline: none;
+            max-width: 110px;
         }
 
         #entry-date:hover {
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
         }
 
         [data-theme="dark"] #entry-date {

@@ -4356,31 +4356,44 @@ window.AppStorage.initSync();
             window.handleBottomNav = handleBottomNav;
             window.showThermalReceiptModal = showThermalReceiptModal;
 
-            // رسالة الميزة الجديدة (تظهر مرة واحدة فقط)
-            if (!AppStorage.getItem('feature_papers_announced')) {
+            // نافذة التحديث الجديد التلقائية الفخمة (تظهر مرة واحدة فقط عند كل تحديث جديد)
+            const lastSeenVersion = AppStorage.getItem('last_seen_app_update_version');
+            if (lastSeenVersion !== CURRENT_APP_VERSION) {
                 setTimeout(() => {
+                    playSound('success');
                     Swal.fire({
-                        title: '✨ ميزة جديدة رائعة!',
+                        title: '🎉 تم إطلاق التحديث الجديد v' + CURRENT_APP_VERSION + '!',
                         html: `
-                            <div style="text-align: center; direction: rtl;">
-                                <p style="font-size: 1.1em; color: var(--gold-primary); font-weight: bold;">تم إضافة خاصية "إجمالي عدد الأوراق" 📄</p>
-                                <ul style="text-align: right; font-size: 0.9em; line-height: 1.6; color: var(--text-color);">
-                                    <li>✅ عرض إجمالي عدد الأوراق في الشاشة الرئيسية.</li>
-                                    <li>✅ إمكانية الضغط على منطقة الإجمالي لرؤية تفاصيل الأوراق لكل فئة.</li>
-                                    <li>✅ حفظ عدد الأوراق تلقائياً مع كل يومية.</li>
-                                    <li>✅ عرض وتعديل عدد الأوراق في السجلات القديمة.</li>
-                                </ul>
-                                <p style="font-size: 0.85em; color: var(--secondary-color); margin-top: 10px;">جرب الميزة الآن بالضغط على الإجمالي! 💰</p>
+                            <div style="text-align: right; direction: rtl; padding: 4px;">
+                                <div style="text-align: center; margin-bottom: 12px;">
+                                    <span style="display: inline-block; background: rgba(212,175,55,0.15); color: var(--gold-primary); padding: 5px 16px; border-radius: 14px; font-size: 0.9em; font-weight: 850; border: 1px solid var(--border-color);">
+                                        ⭐ أهم مميزات وتحسينات الإصدار v${CURRENT_APP_VERSION}
+                                    </span>
+                                </div>
+                                <div style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; margin-bottom: 12px;">
+                                    <ul style="margin: 0; padding-right: 20px; font-size: 0.9em; line-height: 1.8; color: var(--text-color); font-weight: 750;">
+                                        <li>📐 <b>ضبط الشريط العلوي:</b> حل مشكلة تآكل مربع التاريخ وملاءمة كل أحجام الهواتف.</li>
+                                        <li>📶 <b>وضع أوفلاين 100%:</b> تشغيل كامل للتطبيق بدون إنترنت نهائياً مع حفظ جميع المكتبات محلياً.</li>
+                                        <li>🔒 <b>حماية أمنية مطورة:</b> فك قفل فوري بكلمة المرور دون إعادة تحميل وكود طوارئ (500).</li>
+                                        <li>🔔 <b>نظام الإشعارات السحابية:</b> زر جرس جديد لمتابعة أحدث التنبيهات والتحديثات.</li>
+                                        <li>⚡ <b>استجابة لمسية فائقة:</b> منع أي تأخير في نقرات الأزرار وإغلاق سلس للنوافذ.</li>
+                                    </ul>
+                                </div>
+                                <p style="font-size: 0.85em; text-align: center; color: var(--text-muted); margin: 0; font-weight: 700;">
+                                    بياناتك وحساباتك محفوظة دائماً بأمان في قاعدة البيانات 🛡️
+                                </p>
                             </div>
                         `,
-                        icon: 'info',
-                        confirmButtonText: 'رائع، فهمت!',
+                        icon: 'success',
+                        confirmButtonText: 'استكشف التحديث الآن 🚀',
                         confirmButtonColor: 'var(--primary-color)',
                         background: 'var(--card-background)',
-                        color: 'var(--text-color)'
+                        color: 'var(--text-color)',
+                        showCloseButton: true
+                    }).then(() => {
+                        AppStorage.setItem('last_seen_app_update_version', CURRENT_APP_VERSION);
                     });
-                    AppStorage.setItem('feature_papers_announced', 'true');
-                }, 2000);
+                }, 1200);
             }
         });
 
@@ -4475,7 +4488,7 @@ window.AppStorage.initSync();
         // ---------------------------------------------------------
         // PWA Service Worker ونظام التحديث التلقائي الذكي للإصدارات
         // ---------------------------------------------------------
-        const CURRENT_APP_VERSION = '5.4.1';
+        const CURRENT_APP_VERSION = '5.4.2';
 
         // دالة فحص ومقارنة الإصدارات السحابية
         async function checkForAppUpdates() {
