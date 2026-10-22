@@ -2,7 +2,7 @@
     "id": "com.cashcalc.smartpro",
     "name": "حاسبة النقدية الذكية Pro",
     "short_name": "حاسبة النقدية",
-    "version": "6.0.0",
+    "version": "6.1.0",
     "description": "حاسبة نقدية ذكية مع سجلات يومية وإيصال كاشير ومحفظة رقمية",
     "start_url": "./index.html",
     "scope": "./",
@@ -19,49 +19,49 @@
     ],
     "icons": [
         {
-            "src": "icons/icon-72.png?v=6.0.0",
+            "src": "icons/icon-72.png?v=6.1.0",
             "sizes": "72x72",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-96.png?v=6.0.0",
+            "src": "icons/icon-96.png?v=6.1.0",
             "sizes": "96x96",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-128.png?v=6.0.0",
+            "src": "icons/icon-128.png?v=6.1.0",
             "sizes": "128x128",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-144.png?v=6.0.0",
+            "src": "icons/icon-144.png?v=6.1.0",
             "sizes": "144x144",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-152.png?v=6.0.0",
+            "src": "icons/icon-152.png?v=6.1.0",
             "sizes": "152x152",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-192.png?v=6.0.0",
+            "src": "icons/icon-192.png?v=6.1.0",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-384.png?v=6.0.0",
+            "src": "icons/icon-384.png?v=6.1.0",
             "sizes": "384x384",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-512.png?v=6.0.0",
+            "src": "icons/icon-512.png?v=6.1.0",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
@@ -75,7 +75,7 @@
             "url": "./index.html#calculator",
             "icons": [
                 {
-                    "src": "icons/icon-96.png?v=6.0.0",
+                    "src": "icons/icon-96.png?v=6.1.0",
                     "sizes": "96x96"
                 }
             ]

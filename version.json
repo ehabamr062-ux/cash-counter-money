@@ -2,14 +2,16 @@
   "appName": "حاسبة النقدية الذكية Pro",
   "shortName": "حاسبة النقدية",
   "appId": "com.cashcalc.smartpro",
-  "version": "6.0.0",
-  "versionCode": 600,
+  "version": "6.1.0",
+  "versionCode": 610,
   "releaseDate": "2026-10-22",
-  "releaseType": "Official Major Release (V6.0.0)",
+  "releaseType": "Official Major Release (V6.1.0)",
   "developer": "عمرو إيهاب",
   "description": "حاسبة نقدية ذكية موحدة مع سجلات يومية، إيصال كاشير حراري، مركز إشعارات سحابي، تقرير واتساب الوردية الفوري، ونظام التراجع الذكي 100% Offline",
   "latestChanges": [
-    "توحيد رقم الإصدار الشامل V6.0.0 لكافة الأجهزة والأنظمة.",
+    "اعتماد الشعار الملكي الذهبي الفخم (3D Royal Gold) لجميع مقاسات التطبيق والهواتف.",
+    "إضافة خاصية تثبيت التحديث الشامل على الشاشة الرئيسية مباشرة.",
+    "توحيد رقم الإصدار الشامل V6.1.0 لكافة الأجهزة والأنظمة.",
     "إضافة زر التراجع الذكي (Undo) لحماية بيانات الكاشير واستعادة الأرقام فوراً عند التصفير بالخطأ.",
     "تقرير تقفيل الخزينة والوردية الفوري لواتساب بصيغة مالية رسمية وتفقيط عربي دقيق ومطابقة العهدة.",
     "لوحة إحصائيات تقفيل اليوم والوردية في السجل (إجمالي المقبوضات، عدد العمليات، أعلى جرد).",
@@ -19,7 +21,7 @@
   ],
   "compatibility": {
     "platforms": ["Android (PWA / APK)", "iOS (Safari WebApp)", "Desktop (Chrome / Edge / Windows PWA)"],
-    "offlineSupport": "100% Offline with Service Worker v6.0.0",
+    "offlineSupport": "100% Offline with Service Worker v6.1.0",
     "storageEngine": "IndexedDB + Persistent Storage Engine"
   }
 }

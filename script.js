@@ -3886,6 +3886,17 @@ window.AppStorage.initSync();
         // --- 📢 نظام مركز الإشعارات والتحديثات الشامل (Notification & Updates Center) 📢 ---
         const APP_UPDATES_HISTORY = [
             {
+                version: "6.1.0",
+                date: "2026/10/22",
+                badge: "⭐ الإصدار الرسمي المعتمد",
+                title: "إطلاق الشعار الملكي الذهبي الفخم وتحديث الشاشة الرئيسية",
+                items: [
+                    "اعتماد الشعار الملكي الذهبي الفخم (3D Royal Gold) لجميع مقاسات التطبيق وأجهزة الموبايل.",
+                    "إضافة زر وخاصية تثبيت التحديث الشامل على الشاشة الرئيسية مباشرة.",
+                    "ترقية رقم الإصدار الشامل إلى V6.1.0 وتحديث كاش المتصفح تلقائياً."
+                ]
+            },
+            {
                 version: "6.0.0",
                 date: "2026/10/22",
                 badge: "⭐ الإصدار الموحد الشامل",
@@ -4788,7 +4799,7 @@ window.AppStorage.initSync();
         // ---------------------------------------------------------
         // PWA Service Worker ونظام التحديث التلقائي الذكي للإصدارات
         // ---------------------------------------------------------
-        const CURRENT_APP_VERSION = '6.0.0';
+        const CURRENT_APP_VERSION = '6.1.0';
 
         // دالة فحص ومقارنة الإصدارات السحابية
         async function checkForAppUpdates() {
@@ -5186,7 +5197,7 @@ ${diffIcon} *الفارق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG'
             });
         });
 
-        // --- 📲 تثبيت التحديث الشامل V6.0.0 على الشاشة الرئيسية 📲 ---
+        // --- 📲 تثبيت التحديث الشامل V6.1.0 على الشاشة الرئيسية 📲 ---
         let deferredInstallPrompt = null;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -5209,7 +5220,7 @@ ${diffIcon} *الفارق:* ${diff >= 0 ? '+' : ''}${diff.toLocaleString('ar-EG'
                 html: `
                     <div style="text-align: right; direction: rtl; font-size: 0.88em; line-height: 1.7; color: var(--text-color); padding: 5px;">
                         <p style="font-weight: 850; margin-bottom: 12px; color: var(--primary-color);">
-                            لتثبيت التحديث الشامل V6.0.0 وضمان ظهور أحدث نسخة على هاتفك:
+                            لتثبيت التحديث الشامل V6.1.0 وضمان ظهور أحدث نسخة على هاتفك:
                         </p>
                         <div style="background: var(--input-bg); padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border-color); margin-bottom: 10px;">
                             <b>1️⃣ الخطوة الأولى:</b> اذهب لشاشة هاتفك واحذف أيقونة التطبيق السابقة (إزالة / إلغاء التثبيت).
